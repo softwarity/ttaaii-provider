@@ -1,0 +1,179 @@
+<section class="playground">
+  <h2>Playground</h2>
+
+  <!-- Controls -->
+  <div class="controls">
+    <button mat-icon-button (click)="toggleColorScheme()" [matTooltip]="isDarkMode() ? 'Switch to light mode' : 'Switch to dark mode'">
+      @if (isDarkMode()) {
+        <mat-icon>light_mode</mat-icon>
+      } @else {
+        <mat-icon>dark_mode</mat-icon>
+      }
+    </button>
+
+    <button mat-stroked-button (click)="toggleGrouping()" [class.active]="groupByContinent()">
+      <mat-icon>{{ groupByContinent() ? 'folder' : 'list' }}</mat-icon>
+      {{ groupByContinent() ? 'Grouped by Continent' : 'Flat List' }}
+    </button>
+  </div>
+
+  <!-- TTAAII Input -->
+  <div class="input-section">
+    <mat-form-field appearance="outline" class="ttaaii-input">
+      <mat-label>TTAAII Code</mat-label>
+      <input
+        matInput
+        [value]="inputValue()"
+        (input)="onInputChange($any($event.target).value)"
+        [matAutocomplete]="auto"
+        placeholder="Enter TTAAII code..."
+        maxlength="6"
+        autocomplete="off"
+      />
+      <mat-hint>{{ fieldLabels[currentField()] }} (Position {{ position() }})</mat-hint>
+      @if (inputValue()) {
+        <button matSuffix mat-icon-button (click)="clearInput()" matTooltip="Clear">
+          <mat-icon>clear</mat-icon>
+        </button>
+      }
+
+      <mat-autocomplete #auto="matAutocomplete" (optionSelected)="selectOption($event.option.value)" class="ttaaii-autocomplete">
+        @if (groups(); as groupList) {
+          <!-- Grouped display -->
+          @for (group of groupList; track trackByKey($index, group)) {
+            <mat-optgroup [label]="group.label">
+              @for (item of group.items; track trackByCode($index, item)) {
+                <mat-option [value]="item">
+                  <span class="option-code">{{ item.code }}</span>
+                  <span class="option-label">{{ item.label }}</span>
+                  @if (item.codeForm) {
+                    <span class="option-code-form">{{ item.codeForm }}</span>
+                  }
+                </mat-option>
+              }
+            </mat-optgroup>
+          }
+        } @else {
+          <!-- Flat list -->
+          @for (item of filteredItems(); track trackByCode($index, item)) {
+            <mat-option [value]="item">
+              <span class="option-code">{{ item.code }}</span>
+              <span class="option-label">{{ item.label }}</span>
+              @if (item.codeForm) {
+                <span class="option-code-form">{{ item.codeForm }}</span>
+              }
+            </mat-option>
+          }
+        }
+      </mat-autocomplete>
+    </mat-form-field>
+
+    <div class="input-actions">
+      <button mat-stroked-button (click)="backspace()" [disabled]="!inputValue()">
+        <mat-icon>backspace</mat-icon>
+        Backspace
+      </button>
+    </div>
+  </div>
+
+  <!-- Current Code Display -->
+  <div class="code-display">
+    <div class="code-chars">
+      @for (char of ['T1', 'T2', 'A1', 'A2', 'i', 'i']; track $index; let i = $index) {
+        <div class="char-box" [class.active]="position() === i" [class.filled]="inputValue().length > i">
+          <span class="char-label">{{ char }}</span>
+          <span class="char-value">{{ inputValue()[i] || '_' }}</span>
+        </div>
+      }
+    </div>
+
+    @if (isComplete()) {
+      <mat-chip class="complete-chip" highlighted>
+        <mat-icon>check_circle</mat-icon>
+        Complete
+      </mat-chip>
+    }
+  </div>
+
+  <!-- Decoded Information -->
+  @if (inputValue()) {
+    <div class="decoded-section">
+      <h3>Decoded Information</h3>
+      <div class="decoded-grid">
+        @if (decoded().dataType) {
+          <div class="decoded-item">
+            <span class="decoded-label">Data Type (T1)</span>
+            <span class="decoded-value">
+              <code>{{ decoded().dataType!.code }}</code>
+              {{ decoded().dataType!.label }}
+            </span>
+          </div>
+        }
+
+        @if (decoded().dataSubtype) {
+          <div class="decoded-item">
+            <span class="decoded-label">Data Subtype (T2)</span>
+            <span class="decoded-value">
+              <code>{{ decoded().dataSubtype!.code }}</code>
+              {{ decoded().dataSubtype!.label }}
+              @if (decoded().dataSubtype!.codeForm) {
+                <span class="code-form">({{ decoded().dataSubtype!.codeForm }})</span>
+              }
+            </span>
+          </div>
+        }
+
+        @if (decoded().areaOrType1) {
+          <div class="decoded-item">
+            <span class="decoded-label">Area/Type (A1)</span>
+            <span class="decoded-value">
+              <code>{{ decoded().areaOrType1!.code }}</code>
+              {{ decoded().areaOrType1!.label }}
+            </span>
+          </div>
+        }
+
+        @if (decoded().areaOrTime2) {
+          <div class="decoded-item">
+            <span class="decoded-label">Area/Time (A2)</span>
+            <span class="decoded-value">
+              <code>{{ decoded().areaOrTime2!.code }}</code>
+              {{ decoded().areaOrTime2!.label }}
+            </span>
+          </div>
+        }
+
+        @if (decoded().level) {
+          <div class="decoded-item">
+            <span class="decoded-label">Level/Sequence (ii)</span>
+            <span class="decoded-value">
+              <code>{{ decoded().level!.code }}</code>
+              {{ decoded().level!.label }}
+            </span>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Usage Example -->
+  <div class="usage-section">
+    <h3>Usage</h3>
+    <pre><code>import &#123; TtaaiiProvider &#125; from '&#64;softwarity/ttaaii-provider';
+
+const provider = new TtaaiiProvider();
+
+// Get completions for current input
+const result = provider.complete('{{ inputValue() || 'F' }}');
+console.log(result.field);  // '{{ currentField() }}'
+console.log(result.items);  // [&#123; code: '...', label: '...' &#125;, ...]
+
+// Decode a TTAAII code
+const decoded = provider.decode('{{ inputValue() || 'SAFR01' }}');
+console.log(decoded.dataType?.label);  // '{{ decoded().dataType?.label || 'Surface data' }}'
+
+// Validate a code
+const validation = provider.validate('{{ inputValue() || 'SAFR01' }}');
+console.log(validation.valid);  // true</code></pre>
+  </div>
+</section>
