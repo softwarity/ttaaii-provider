@@ -1,5 +1,4 @@
 import type {
-  TtaaiiProviderConfig,
   CompletionOptions,
   CompletionResult,
   CompletionItem,
@@ -47,15 +46,10 @@ const CONTINENT_LABELS: Record<string, string> = {
  * UI-agnostic - can be used with any autocomplete implementation.
  */
 export class TtaaiiProvider {
-  private config: TtaaiiProviderConfig;
   private tables: TtaaiiTables;
 
-  constructor(tables?: TtaaiiTables, config: TtaaiiProviderConfig = {}) {
+  constructor(tables?: TtaaiiTables) {
     this.tables = tables || (defaultTables as TtaaiiTables);
-    this.config = {
-      locale: config.locale || 'en',
-      regional: config.regional,
-    };
   }
 
   /**

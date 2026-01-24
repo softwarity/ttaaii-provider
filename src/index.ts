@@ -15,7 +15,6 @@ export type {
   TableEntry,
   TableDefinition,
   RegionalConfig,
-  TtaaiiProviderConfig,
   TtaaiiTables,
 } from './types';
 

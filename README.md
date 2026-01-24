@@ -178,13 +178,10 @@ const provider = new TtaaiiProvider(frenchTables);
 #### Constructor
 
 ```typescript
-new TtaaiiProvider(tables?: TtaaiiTables, config?: TtaaiiProviderConfig)
+new TtaaiiProvider(tables?: TtaaiiTables)
 ```
 
 - `tables` - Optional custom tables (defaults to built-in WMO tables)
-- `config` - Optional configuration
-  - `locale` - Locale for labels (default: 'en')
-  - `regional` - Regional extensions
 
 #### Methods
 

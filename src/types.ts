@@ -178,16 +178,6 @@ export interface RegionalConfig {
 }
 
 /**
- * Provider configuration
- */
-export interface TtaaiiProviderConfig {
-  /** Locale for labels */
-  locale?: string;
-  /** Regional extensions */
-  regional?: RegionalConfig;
-}
-
-/**
  * Tables JSON structure
  * This is the format for the tables data that can be overridden
  */
