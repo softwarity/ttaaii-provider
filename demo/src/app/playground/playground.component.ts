@@ -3,13 +3,12 @@ import {
   ChangeDetectionStrategy,
   signal,
   computed,
-  effect,
   CUSTOM_ELEMENTS_SCHEMA,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatAutocompleteModule, MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
@@ -22,6 +21,11 @@ import {
   CompletionGroup,
   DecodedTtaaii,
 } from '../../../../src';
+import { viewChild } from '@angular/core';
+
+// Register interactive-code custom elements
+import { registerInteractiveCode } from '@softwarity/interactive-code';
+registerInteractiveCode();
 
 @Component({
   selector: 'app-playground',
@@ -43,13 +47,11 @@ import {
 })
 export class PlaygroundComponent {
   private provider = new TtaaiiProvider();
+  private autoTrigger = viewChild<MatAutocompleteTrigger>(MatAutocompleteTrigger);
 
   // Input state
   protected inputValue = signal('');
   protected groupByContinent = signal(false);
-
-  // Dark mode toggle
-  protected isDarkMode = signal(document.body.classList.contains('dark-mode'));
 
   // Completion result
   protected completionResult = computed<CompletionResult>(() => {
@@ -61,6 +63,19 @@ export class PlaygroundComponent {
   // Decoded TTAAII
   protected decoded = computed<DecodedTtaaii>(() => {
     return this.provider.decode(this.inputValue());
+  });
+
+  // JSON string for display
+  protected decodedJson = computed(() => {
+    const d = this.decoded();
+    // Only include non-empty fields
+    const clean: Record<string, unknown> = { input: d.input };
+    if (d.dataType) clean['dataType'] = d.dataType;
+    if (d.dataSubtype) clean['dataSubtype'] = d.dataSubtype;
+    if (d.areaOrType1) clean['areaOrType1'] = d.areaOrType1;
+    if (d.areaOrTime2) clean['areaOrTime2'] = d.areaOrTime2;
+    if (d.level) clean['level'] = d.level;
+    return JSON.stringify(clean, null, 2);
   });
 
   // Filtered items for autocomplete
@@ -91,11 +106,8 @@ export class PlaygroundComponent {
     ii: 'Level/Sequence',
   };
 
-  constructor() {
-    // Effect to sync dark mode with body class
-    effect(() => {
-      document.body.classList.toggle('dark-mode', this.isDarkMode());
-    });
+  openPanel(): void {
+    this.autoTrigger()?.openPanel();
   }
 
   onInputChange(value: string): void {
@@ -123,10 +135,6 @@ export class PlaygroundComponent {
         this.inputValue.set(current.slice(0, -1));
       }
     }
-  }
-
-  toggleColorScheme(): void {
-    this.isDarkMode.update((dark) => !dark);
   }
 
   toggleGrouping(): void {

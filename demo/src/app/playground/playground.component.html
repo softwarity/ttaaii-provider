@@ -1,32 +1,19 @@
 <section class="playground">
   <h2>Playground</h2>
 
-  <!-- Controls -->
-  <div class="controls">
-    <button mat-icon-button (click)="toggleColorScheme()" [matTooltip]="isDarkMode() ? 'Switch to light mode' : 'Switch to dark mode'">
-      @if (isDarkMode()) {
-        <mat-icon>light_mode</mat-icon>
-      } @else {
-        <mat-icon>dark_mode</mat-icon>
-      }
-    </button>
-
-    <button mat-stroked-button (click)="toggleGrouping()" [class.active]="groupByContinent()">
-      <mat-icon>{{ groupByContinent() ? 'folder' : 'list' }}</mat-icon>
-      {{ groupByContinent() ? 'Grouped by Continent' : 'Flat List' }}
-    </button>
-  </div>
-
   <!-- TTAAII Input -->
   <div class="input-section">
     <mat-form-field appearance="outline" class="ttaaii-input">
       <mat-label>TTAAII Code</mat-label>
       <input
+        #inputEl
         matInput
         [value]="inputValue()"
         (input)="onInputChange($any($event.target).value)"
+        (keydown.control.space)="openPanel()"
         [matAutocomplete]="auto"
-        placeholder="Enter TTAAII code..."
+        [matAutocompleteDisabled]="false"
+        placeholder="SAFR01"
         maxlength="6"
         autocomplete="off"
       />
@@ -44,11 +31,15 @@
             <mat-optgroup [label]="group.label">
               @for (item of group.items; track trackByCode($index, item)) {
                 <mat-option [value]="item">
-                  <span class="option-code">{{ item.code }}</span>
-                  <span class="option-label">{{ item.label }}</span>
-                  @if (item.codeForm) {
-                    <span class="option-code-form">{{ item.codeForm }}</span>
-                  }
+                  <div class="option-content">
+                    <div class="option-main">
+                      <span class="option-code">{{ item.code }}</span>
+                      <span class="option-label">{{ item.label }}</span>
+                    </div>
+                    @if (item.codeForm) {
+                      <div class="option-secondary">{{ item.codeForm }}</div>
+                    }
+                  </div>
                 </mat-option>
               }
             </mat-optgroup>
@@ -57,11 +48,15 @@
           <!-- Flat list -->
           @for (item of filteredItems(); track trackByCode($index, item)) {
             <mat-option [value]="item">
-              <span class="option-code">{{ item.code }}</span>
-              <span class="option-label">{{ item.label }}</span>
-              @if (item.codeForm) {
-                <span class="option-code-form">{{ item.codeForm }}</span>
-              }
+              <div class="option-content">
+                <div class="option-main">
+                  <span class="option-code">{{ item.code }}</span>
+                  <span class="option-label">{{ item.label }}</span>
+                </div>
+                @if (item.codeForm) {
+                  <div class="option-secondary">{{ item.codeForm }}</div>
+                }
+              </div>
             </mat-option>
           }
         }
@@ -71,7 +66,10 @@
     <div class="input-actions">
       <button mat-stroked-button (click)="backspace()" [disabled]="!inputValue()">
         <mat-icon>backspace</mat-icon>
-        Backspace
+      </button>
+      <button mat-stroked-button (click)="toggleGrouping()" [class.active]="groupByContinent()">
+        <mat-icon>{{ groupByContinent() ? 'folder' : 'list' }}</mat-icon>
+        {{ groupByContinent() ? 'Grouped' : 'Flat' }}
       </button>
     </div>
   </div>
@@ -95,85 +93,38 @@
     }
   </div>
 
-  <!-- Decoded Information -->
+  <!-- Decoded JSON -->
   @if (inputValue()) {
     <div class="decoded-section">
-      <h3>Decoded Information</h3>
-      <div class="decoded-grid">
-        @if (decoded().dataType) {
-          <div class="decoded-item">
-            <span class="decoded-label">Data Type (T1)</span>
-            <span class="decoded-value">
-              <code>{{ decoded().dataType!.code }}</code>
-              {{ decoded().dataType!.label }}
-            </span>
-          </div>
-        }
-
-        @if (decoded().dataSubtype) {
-          <div class="decoded-item">
-            <span class="decoded-label">Data Subtype (T2)</span>
-            <span class="decoded-value">
-              <code>{{ decoded().dataSubtype!.code }}</code>
-              {{ decoded().dataSubtype!.label }}
-              @if (decoded().dataSubtype!.codeForm) {
-                <span class="code-form">({{ decoded().dataSubtype!.codeForm }})</span>
-              }
-            </span>
-          </div>
-        }
-
-        @if (decoded().areaOrType1) {
-          <div class="decoded-item">
-            <span class="decoded-label">Area/Type (A1)</span>
-            <span class="decoded-value">
-              <code>{{ decoded().areaOrType1!.code }}</code>
-              {{ decoded().areaOrType1!.label }}
-            </span>
-          </div>
-        }
-
-        @if (decoded().areaOrTime2) {
-          <div class="decoded-item">
-            <span class="decoded-label">Area/Time (A2)</span>
-            <span class="decoded-value">
-              <code>{{ decoded().areaOrTime2!.code }}</code>
-              {{ decoded().areaOrTime2!.label }}
-            </span>
-          </div>
-        }
-
-        @if (decoded().level) {
-          <div class="decoded-item">
-            <span class="decoded-label">Level/Sequence (ii)</span>
-            <span class="decoded-value">
-              <code>{{ decoded().level!.code }}</code>
-              {{ decoded().level!.label }}
-            </span>
-          </div>
-        }
-      </div>
+      <h3>Decoded Output</h3>
+      <interactive-code language="json">
+        <textarea>{{ decodedJson() }}</textarea>
+      </interactive-code>
     </div>
   }
 
-  <!-- Usage Example -->
+  <!-- Usage Examples -->
   <div class="usage-section">
     <h3>Usage</h3>
-    <pre><code>import &#123; TtaaiiProvider &#125; from '&#64;softwarity/ttaaii-provider';
 
-const provider = new TtaaiiProvider();
+    <h4>Flat List (default)</h4>
+    <interactive-code language="typescript">
+      <textarea>const result = provider.complete('SA');
+// result.items = [
+//   { code: 'A', label: 'Afghanistan' },
+//   { code: 'B', label: 'Albania' },
+//   ...
+// ]</textarea>
+    </interactive-code>
 
-// Get completions for current input
-const result = provider.complete('{{ inputValue() || 'F' }}');
-console.log(result.field);  // '{{ currentField() }}'
-console.log(result.items);  // [&#123; code: '...', label: '...' &#125;, ...]
-
-// Decode a TTAAII code
-const decoded = provider.decode('{{ inputValue() || 'SAFR01' }}');
-console.log(decoded.dataType?.label);  // '{{ decoded().dataType?.label || 'Surface data' }}'
-
-// Validate a code
-const validation = provider.validate('{{ inputValue() || 'SAFR01' }}');
-console.log(validation.valid);  // true</code></pre>
+    <h4>Grouped by Continent</h4>
+    <interactive-code language="typescript">
+      <textarea>const result = provider.complete('SA', { groupBy: 'continent' });
+// result.groups = [
+//   { key: 'EU', label: 'Europe', items: [...] },
+//   { key: 'AF', label: 'Africa', items: [...] },
+//   ...
+// ]</textarea>
+    </interactive-code>
   </div>
 </section>

@@ -6,34 +6,22 @@
   margin-bottom: 32px;
 }
 
-// Controls
-.controls {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 24px;
-
-  button.active {
-    background: rgba(88, 166, 255, 0.15);
-    border-color: var(--accent-blue);
-  }
-}
 
 // Input Section
 .input-section {
   display: flex;
   gap: 16px;
   align-items: flex-start;
-  margin-bottom: 24px;
+  margin-bottom: 32px;
 
   .ttaaii-input {
-    flex: 1;
-    max-width: 400px;
+    flex: 0 0 auto;
+    width: 220px;
 
     input {
       font-family: 'Courier New', Consolas, monospace;
-      font-size: 1.5rem;
-      letter-spacing: 0.3em;
+      font-size: 1rem;
+      letter-spacing: 0.15em;
       text-transform: uppercase;
     }
   }
@@ -42,35 +30,53 @@
     display: flex;
     gap: 8px;
     padding-top: 8px;
+
+    button.active {
+      background: rgba(88, 166, 255, 0.15);
+      border-color: var(--accent-blue);
+    }
   }
 }
 
 // Autocomplete styling
 ::ng-deep .ttaaii-autocomplete {
   .mat-mdc-option {
+    height: auto !important;
+    min-height: 48px;
+    padding: 8px 16px !important;
+    line-height: 1.3;
+  }
+
+  .option-content {
     display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 8px 16px;
+    flex-direction: column;
+    gap: 2px;
+    width: 100%;
+  }
+
+  .option-main {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
   }
 
   .option-code {
     font-family: 'Courier New', Consolas, monospace;
-    font-weight: 600;
-    font-size: 1.1rem;
-    min-width: 40px;
+    font-weight: 700;
+    font-size: 1rem;
+    min-width: 28px;
     color: var(--accent-blue);
   }
 
   .option-label {
-    flex: 1;
+    font-size: 0.95rem;
     color: var(--text-primary);
   }
 
-  .option-code-form {
-    font-size: 0.85rem;
+  .option-secondary {
+    font-size: 0.8rem;
     color: var(--text-muted);
-    font-style: italic;
+    padding-left: 38px;
   }
 
   mat-optgroup {
@@ -87,7 +93,7 @@
   display: flex;
   align-items: center;
   gap: 24px;
-  margin-bottom: 24px;
+  margin-bottom: 32px;
   padding: 16px;
   background: var(--bg-secondary);
   border-radius: 8px;
@@ -144,55 +150,17 @@
 
 // Decoded Section
 .decoded-section {
-  margin-bottom: 24px;
-  padding: 16px;
-  background: var(--bg-secondary);
-  border-radius: 8px;
-  border: 1px solid var(--border-color);
+  margin-bottom: 32px;
 
   h3 {
-    margin: 0 0 16px 0;
+    margin: 0 0 12px 0;
     font-size: 1rem;
     font-weight: 600;
     color: var(--text-primary);
   }
 
-  .decoded-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 12px;
-  }
-
-  .decoded-item {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    padding: 12px;
-    background: var(--bg-primary);
-    border-radius: 6px;
-    border: 1px solid var(--border-color);
-
-    .decoded-label {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    .decoded-value {
-      font-size: 0.95rem;
-      color: var(--text-primary);
-
-      code {
-        font-weight: 600;
-        margin-right: 8px;
-      }
-
-      .code-form {
-        color: var(--text-muted);
-        font-size: 0.85rem;
-      }
-    }
+  pre {
+    max-height: 300px;
   }
 }
 
@@ -205,9 +173,18 @@
     color: var(--text-primary);
   }
 
-  pre {
-    margin: 0;
+  h4 {
+    margin: 16px 0 8px 0;
     font-size: 0.9rem;
-    line-height: 1.5;
+    font-weight: 500;
+    color: var(--text-secondary);
+
+    &:first-of-type {
+      margin-top: 0;
+    }
+  }
+
+  interactive-code {
+    margin-bottom: 16px;
   }
 }

@@ -186,3 +186,61 @@ export interface TtaaiiProviderConfig {
   /** Regional extensions */
   regional?: RegionalConfig;
 }
+
+/**
+ * Tables JSON structure
+ * This is the format for the tables data that can be overridden
+ */
+export interface TtaaiiTables {
+  /** Table A: T1 data types */
+  A: {
+    id: string;
+    name: string;
+    entries: TableEntry[];
+  };
+  /** Table B1: T2 by T1 */
+  B1: {
+    id: string;
+    name: string;
+    byT1: Record<string, TableEntry[]>;
+  };
+  /** Table B2-B7: T2 entries */
+  B2: { id: string; name: string; entries: TableEntry[] };
+  B3: { id: string; name: string; entries: TableEntry[] };
+  B4: { id: string; name: string; entries: TableEntry[] };
+  B5: { id: string; name: string; entries: TableEntry[] };
+  B6: { id: string; name: string; entries: TableEntry[] };
+  B7: { id: string; name: string; entries: TableEntry[] };
+  /** Table C1: Countries */
+  C1: { id: string; name: string; entries: TableEntry[] };
+  /** Table C3: GRID areas */
+  C3: { id: string; name: string; entries: TableEntry[] };
+  /** Table C4: GRID reference time */
+  C4: { id: string; name: string; entries: TableEntry[] };
+  /** Table C5: Regional pictorial time */
+  C5: { id: string; name: string; entries: TableEntry[] };
+  /** Table C6: BUFR A1 by T1T2 */
+  C6: {
+    id: string;
+    name: string;
+    byT1T2: Record<string, TableEntry[]>;
+  };
+  /** Table C7: CREX */
+  C7: {
+    id: string;
+    name: string;
+    T2: TableEntry[];
+    A1byT2: Record<string, TableEntry[]>;
+  };
+  /** Table D1: Oceanographic ii */
+  D1: { id: string; name: string; entries: TableEntry[] };
+  /** Table D2: GRID ii */
+  D2: { id: string; name: string; entries: TableEntry[] };
+  /** Table D3: FA/UA ii ranges */
+  D3: {
+    id: string;
+    name: string;
+    FA: { ranges: { start: number; end: number; label: string }[] };
+    UA: { ranges: { start: number; end: number; label: string }[] };
+  };
+}

@@ -9,6 +9,7 @@ import type {
   DecodedTtaaii,
   TtaaiiContext,
   TableEntry,
+  TtaaiiTables,
 } from './types';
 
 import {
@@ -20,9 +21,24 @@ import {
   getA1Table,
   getA2Table,
   getIiTable,
-} from './grammar';
+} from './grammar/resolver';
 
-import { CONTINENT_LABELS } from './grammar/tables/table-c1';
+// Default tables
+import defaultTables from './grammar/data/tables.json';
+
+// Continent labels for grouping
+const CONTINENT_LABELS: Record<string, string> = {
+  EU: 'Europe',
+  AF: 'Africa',
+  AS: 'Asia',
+  NA: 'North America',
+  SA: 'South America',
+  CA: 'Caribbean and Central America',
+  OC: 'Oceania',
+  AN: 'Antarctic',
+  AREA: 'Area Designators',
+  OTHER: 'Other',
+};
 
 /**
  * TTAAII completion provider
@@ -32,8 +48,10 @@ import { CONTINENT_LABELS } from './grammar/tables/table-c1';
  */
 export class TtaaiiProvider {
   private config: TtaaiiProviderConfig;
+  private tables: TtaaiiTables;
 
-  constructor(config: TtaaiiProviderConfig = {}) {
+  constructor(tables?: TtaaiiTables, config: TtaaiiProviderConfig = {}) {
+    this.tables = tables || (defaultTables as TtaaiiTables);
     this.config = {
       locale: config.locale || 'en',
       regional: config.regional,
@@ -49,7 +67,7 @@ export class TtaaiiProvider {
    */
   complete(input: string, options: CompletionOptions = {}): CompletionResult {
     const normalizedInput = input.toUpperCase();
-    const { position, field, table, context } = resolveTable(normalizedInput);
+    const { position, field, table, context } = resolveTable(this.tables, normalizedInput);
 
     const items: CompletionItem[] = [];
     let groups: CompletionGroup[] | undefined;
@@ -61,8 +79,8 @@ export class TtaaiiProvider {
       }
 
       // Handle grouping if requested
-      if (options.groupBy && table.groups) {
-        groups = this.groupItems(items, table.groups, options.groupBy);
+      if (options.groupBy) {
+        groups = this.groupItems(items, options.groupBy);
       }
     }
 
@@ -92,7 +110,7 @@ export class TtaaiiProvider {
     for (let i = 0; i < normalizedInput.length; i++) {
       const char = normalizedInput[i];
       const partialContext = parseContext(normalizedInput.slice(0, i));
-      const result = validateCharacter(char, i, partialContext);
+      const result = validateCharacter(this.tables, char, i, partialContext);
 
       if (!result.valid) {
         errors.push({
@@ -125,7 +143,7 @@ export class TtaaiiProvider {
 
     // Decode T1
     if (context.T1) {
-      const t1Table = getT1Table();
+      const t1Table = getT1Table(this.tables);
       const t1Entry = t1Table.entries.find(e => e.code === context.T1);
       if (t1Entry) {
         result.dataType = {
@@ -138,7 +156,7 @@ export class TtaaiiProvider {
 
     // Decode T2
     if (context.T1 && context.T2) {
-      const t2Table = getT2Table(context);
+      const t2Table = getT2Table(this.tables, context);
       if (t2Table) {
         const t2Entry = t2Table.entries.find(e => e.code === context.T2);
         if (t2Entry) {
@@ -153,7 +171,7 @@ export class TtaaiiProvider {
 
     // Decode A1
     if (context.T1 && context.T2 && context.A1) {
-      const a1Table = getA1Table(context);
+      const a1Table = getA1Table(this.tables, context);
       if (a1Table) {
         // For C1 table, A1 might be first character of 2-char code
         const a1Entry = a1Table.entries.find(e =>
@@ -171,7 +189,7 @@ export class TtaaiiProvider {
 
     // Decode A2
     if (context.T1 && context.T2 && context.A1 && context.A2) {
-      const a2Table = getA2Table(context);
+      const a2Table = getA2Table(this.tables, context);
       if (a2Table) {
         // For C1 table (countries), combine A1A2
         const combinedCode = context.A1 + context.A2;
@@ -193,7 +211,7 @@ export class TtaaiiProvider {
 
     // Decode ii
     if (context.ii) {
-      const iiTable = getIiTable(context);
+      const iiTable = getIiTable(this.tables, context);
       if (iiTable) {
         const iiEntry = iiTable.entries.find(e => e.code === context.ii);
         if (iiEntry) {
@@ -223,19 +241,19 @@ export class TtaaiiProvider {
 
     switch (field) {
       case 'T1':
-        table = getT1Table();
+        table = getT1Table(this.tables);
         break;
       case 'T2':
-        table = getT2Table(context);
+        table = getT2Table(this.tables, context);
         break;
       case 'A1':
-        table = getA1Table(context);
+        table = getA1Table(this.tables, context);
         break;
       case 'A2':
-        table = getA2Table(context);
+        table = getA2Table(this.tables, context);
         break;
       case 'ii':
-        table = getIiTable(context);
+        table = getIiTable(this.tables, context);
         break;
     }
 
@@ -246,8 +264,8 @@ export class TtaaiiProvider {
     const items = table.entries.map(e => this.entryToCompletionItem(e));
 
     let groups: CompletionGroup[] | undefined;
-    if (options.groupBy && table.groups) {
-      groups = this.groupItems(items, table.groups, options.groupBy);
+    if (options.groupBy) {
+      groups = this.groupItems(items, options.groupBy);
     }
 
     return { items, groups };
@@ -267,11 +285,10 @@ export class TtaaiiProvider {
   }
 
   /**
-   * Group items based on table groups and groupBy option
+   * Group items based on groupBy option
    */
   private groupItems(
     items: CompletionItem[],
-    tableGroups: { key: string; label: string; codes: string[] }[],
     groupBy: string
   ): CompletionGroup[] {
     // If groupBy matches a metadata field (e.g., 'continent'), use that
@@ -279,33 +296,8 @@ export class TtaaiiProvider {
       return this.groupByContinent(items);
     }
 
-    // Otherwise use table-defined groups
-    const groups: CompletionGroup[] = [];
-    const usedCodes = new Set<string>();
-
-    for (const group of tableGroups) {
-      const groupItems = items.filter(item => group.codes.includes(item.code));
-      if (groupItems.length > 0) {
-        groups.push({
-          key: group.key,
-          label: group.label,
-          items: groupItems,
-        });
-        groupItems.forEach(item => usedCodes.add(item.code));
-      }
-    }
-
-    // Add ungrouped items to "Other" group
-    const ungrouped = items.filter(item => !usedCodes.has(item.code));
-    if (ungrouped.length > 0) {
-      groups.push({
-        key: 'OTHER',
-        label: 'Other',
-        items: ungrouped,
-      });
-    }
-
-    return groups;
+    // Default: no grouping
+    return [];
   }
 
   /**

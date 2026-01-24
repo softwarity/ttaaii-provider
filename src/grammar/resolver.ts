@@ -1,31 +1,38 @@
-import type { TableDefinition, TableEntry, TtaaiiContext, TtaaiiField } from '../types';
-import {
-  TABLE_A,
-  T1_TO_T2_TABLE,
-  T1_TO_A1_TABLE,
-  T1_TO_A2_TABLE,
-  T1_TO_II_TABLE,
-  getTableB1,
-  TABLE_B2,
-  TABLE_B3,
-  TABLE_B4,
-  TABLE_B5,
-  TABLE_B6,
-  TABLE_B7,
-  TABLE_C1,
-  TABLE_C2,
-  TABLE_C3,
-  TABLE_C4,
-  TABLE_C5,
-  getTableC6,
-  TABLE_C7_T2,
-  getTableC7A1,
-  TABLE_D1,
-  TABLE_D2,
-  TABLE_D3,
-  generateFAiiCodes,
-  generateUAiiCodes,
-} from './tables';
+import type { TableDefinition, TableEntry, TtaaiiContext, TtaaiiField, TtaaiiTables } from '../types';
+
+// Mappings: which table to use based on T1
+const T1_TO_T2_TABLE: Record<string, string> = {
+  'A': 'B1', 'C': 'B1', 'F': 'B1', 'N': 'B1', 'S': 'B1', 'T': 'B1', 'U': 'B1', 'W': 'B1',
+  'D': 'B2', 'G': 'B2', 'H': 'B2', 'Y': 'B2',
+  'I': 'B3', 'J': 'B3',
+  'O': 'B4',
+  'E': 'B5',
+  'P': 'B6', 'Q': 'B6',
+  'L': 'B7',
+  'K': 'C7_T2',
+};
+
+const T1_TO_A1_TABLE: Record<string, string> = {
+  'A': 'C1', 'C': 'C1', 'F': 'C1', 'N': 'C1', 'S': 'C1', 'T': 'C1', 'U': 'C1', 'W': 'C1',
+  'P': 'C1', 'E': 'C1', 'L': 'C1',
+  'D': 'C3', 'G': 'C3', 'H': 'C3', 'Y': 'C3', 'O': 'C3', 'Q': 'C3',
+  'I': 'C6', 'J': 'C6',
+  'K': 'C7',
+};
+
+const T1_TO_A2_TABLE: Record<string, string> = {
+  'A': 'C1', 'C': 'C1', 'F': 'C1', 'N': 'C1', 'S': 'C1', 'T': 'C1', 'U': 'C1', 'W': 'C1',
+  'P': 'C1', 'E': 'C1', 'L': 'C1',
+  'D': 'C4', 'G': 'C4', 'H': 'C4', 'Y': 'C4',
+  'Q': 'C5',
+  'O': 'C3',
+  'I': 'C3', 'J': 'C3', 'K': 'C3',
+};
+
+const T1_TO_II_TABLE: Record<string, string> = {
+  'O': 'D1',
+  'D': 'D2', 'G': 'D2', 'H': 'D2', 'Y': 'D2',
+};
 
 /**
  * Parse a TTAAII string into its context components
@@ -60,14 +67,18 @@ export function getFieldAtPosition(position: number): TtaaiiField {
 /**
  * Get the table definition for T1 (always Table A)
  */
-export function getT1Table(): TableDefinition {
-  return TABLE_A;
+export function getT1Table(tables: TtaaiiTables): TableDefinition {
+  return {
+    id: tables.A.id,
+    name: tables.A.name,
+    entries: tables.A.entries,
+  };
 }
 
 /**
  * Get the table definition for T2 based on T1 context
  */
-export function getT2Table(context: TtaaiiContext): TableDefinition | null {
+export function getT2Table(tables: TtaaiiTables, context: TtaaiiContext): TableDefinition | null {
   const { T1 } = context;
   if (!T1) return null;
 
@@ -75,22 +86,24 @@ export function getT2Table(context: TtaaiiContext): TableDefinition | null {
   if (!tableId) return null;
 
   switch (tableId) {
-    case 'B1':
-      return getTableB1(T1);
+    case 'B1': {
+      const entries = tables.B1.byT1[T1] || [];
+      return { id: 'B1', name: tables.B1.name, entries };
+    }
     case 'B2':
-      return TABLE_B2;
+      return { id: 'B2', name: tables.B2.name, entries: tables.B2.entries };
     case 'B3':
-      // For CREX (K), T2 comes from C7_T2
-      if (T1 === 'K') return TABLE_C7_T2;
-      return TABLE_B3;
+      return { id: 'B3', name: tables.B3.name, entries: tables.B3.entries };
     case 'B4':
-      return TABLE_B4;
+      return { id: 'B4', name: tables.B4.name, entries: tables.B4.entries };
     case 'B5':
-      return TABLE_B5;
+      return { id: 'B5', name: tables.B5.name, entries: tables.B5.entries };
     case 'B6':
-      return TABLE_B6;
+      return { id: 'B6', name: tables.B6.name, entries: tables.B6.entries };
     case 'B7':
-      return TABLE_B7;
+      return { id: 'B7', name: tables.B7.name, entries: tables.B7.entries };
+    case 'C7_T2':
+      return { id: 'C7_T2', name: tables.C7.name, entries: tables.C7.T2 };
     default:
       return null;
   }
@@ -99,19 +112,21 @@ export function getT2Table(context: TtaaiiContext): TableDefinition | null {
 /**
  * Get the table definition for A1 based on context
  */
-export function getA1Table(context: TtaaiiContext): TableDefinition | null {
+export function getA1Table(tables: TtaaiiTables, context: TtaaiiContext): TableDefinition | null {
   const { T1, T2 } = context;
   if (!T1) return null;
 
   // Special case: CREX (T1 = K) - A1 depends on T2
   if (T1 === 'K' && T2) {
-    return getTableC7A1(T2);
+    const entries = tables.C7.A1byT2[T2] || tables.C7.A1byT2['default'] || [];
+    return { id: 'C7', name: tables.C7.name, entries };
   }
 
   // Special case: BUFR (T1 = I or J) - A1 depends on T1T2
   if ((T1 === 'I' || T1 === 'J') && T2) {
     const t1t2 = T1 + T2;
-    return getTableC6(t1t2);
+    const entries = tables.C6.byT1T2[t1t2] || tables.C6.byT1T2['default'] || [];
+    return { id: 'C6', name: tables.C6.name, entries };
   }
 
   const tableId = T1_TO_A1_TABLE[T1];
@@ -119,15 +134,9 @@ export function getA1Table(context: TtaaiiContext): TableDefinition | null {
 
   switch (tableId) {
     case 'C1':
-      return TABLE_C1;
+      return { id: 'C1', name: tables.C1.name, entries: tables.C1.entries };
     case 'C3':
-      return TABLE_C3;
-    case 'C6':
-      // Should have been handled above for I/J
-      return null;
-    case 'C7':
-      // Should have been handled above for K
-      return null;
+      return { id: 'C3', name: tables.C3.name, entries: tables.C3.entries };
     default:
       return null;
   }
@@ -136,29 +145,18 @@ export function getA1Table(context: TtaaiiContext): TableDefinition | null {
 /**
  * Get the table definition for A2 based on context
  */
-export function getA2Table(context: TtaaiiContext): TableDefinition | null {
-  const { T1, T2 } = context;
+export function getA2Table(tables: TtaaiiTables, context: TtaaiiContext): TableDefinition | null {
+  const { T1 } = context;
   if (!T1) return null;
-
-  // Special handling for ships/oceanographic data based on T2
-  // When T1 = S and T2 uses Table C2 for certain surface data
-  if (T1 === 'S' && T2) {
-    // Check if this is ship-related (SYNOP SHIP etc.)
-    const shipT2 = ['I', 'M', 'N', 'O', 'S'].includes(T2);
-    if (shipT2) {
-      // Could use C1 or C2 - default to C1 for land, but expose C2 option
-      return TABLE_C1;
-    }
-  }
 
   // Special case: BUFR (T1 = I or J) - A2 uses C3 (geographical area)
   if (T1 === 'I' || T1 === 'J') {
-    return TABLE_C3;
+    return { id: 'C3', name: tables.C3.name, entries: tables.C3.entries };
   }
 
   // Special case: CREX (T1 = K) - A2 uses C3
   if (T1 === 'K') {
-    return TABLE_C3;
+    return { id: 'C3', name: tables.C3.name, entries: tables.C3.entries };
   }
 
   const tableId = T1_TO_A2_TABLE[T1];
@@ -166,67 +164,32 @@ export function getA2Table(context: TtaaiiContext): TableDefinition | null {
 
   switch (tableId) {
     case 'C1':
-      return TABLE_C1;
+      return { id: 'C1', name: tables.C1.name, entries: tables.C1.entries };
     case 'C3':
-      return TABLE_C3;
+      return { id: 'C3', name: tables.C3.name, entries: tables.C3.entries };
     case 'C4':
-      return TABLE_C4;
+      return { id: 'C4', name: tables.C4.name, entries: tables.C4.entries };
     case 'C5':
-      return TABLE_C5;
+      return { id: 'C5', name: tables.C5.name, entries: tables.C5.entries };
     default:
       return null;
   }
 }
 
 /**
- * Get the table/entries for ii based on context
+ * Generate ii codes from ranges
  */
-export function getIiTable(context: TtaaiiContext): TableDefinition | null {
-  const { T1, T2 } = context;
-  if (!T1) return null;
-
-  // Special case: FA (Aviation area) or UA (Aircraft reports)
-  const t1t2 = T1 + (T2 || '');
-  if (t1t2 === 'FA') {
-    const codes = generateFAiiCodes();
-    return {
-      id: 'D3_FA',
-      name: 'Level designator ii (T1T2 = FA)',
-      description: 'Aviation area ii designators',
-      entries: codes.map(c => ({ code: c.code, label: c.label })),
-    };
+function generateIiFromRanges(ranges: { start: number; end: number; label: string }[]): TableEntry[] {
+  const codes: TableEntry[] = [];
+  for (const range of ranges) {
+    for (let i = range.start; i <= range.end; i++) {
+      codes.push({
+        code: i.toString().padStart(2, '0'),
+        label: `${range.label} (${i.toString().padStart(2, '0')})`,
+      });
+    }
   }
-
-  if (t1t2 === 'UA') {
-    const codes = generateUAiiCodes();
-    return {
-      id: 'D3_UA',
-      name: 'Level designator ii (T1T2 = UA)',
-      description: 'Aircraft report ii designators',
-      entries: codes.map(c => ({ code: c.code, label: c.label })),
-    };
-  }
-
-  const tableId = T1_TO_II_TABLE[T1];
-  if (!tableId) {
-    // Many T1 values don't have specific ii tables
-    // For these, ii can be any 2-digit number (bulletin sequence)
-    return {
-      id: 'generic_ii',
-      name: 'Bulletin number ii',
-      description: 'Sequential bulletin number (00-99)',
-      entries: generateGenericIiCodes(),
-    };
-  }
-
-  switch (tableId) {
-    case 'D1':
-      return TABLE_D1;
-    case 'D2':
-      return TABLE_D2;
-    default:
-      return null;
-  }
+  return codes;
 }
 
 /**
@@ -244,9 +207,56 @@ function generateGenericIiCodes(): TableEntry[] {
 }
 
 /**
+ * Get the table/entries for ii based on context
+ */
+export function getIiTable(tables: TtaaiiTables, context: TtaaiiContext): TableDefinition | null {
+  const { T1, T2 } = context;
+  if (!T1) return null;
+
+  // Special case: FA (Aviation area) or UA (Aircraft reports)
+  const t1t2 = T1 + (T2 || '');
+  if (t1t2 === 'FA') {
+    return {
+      id: 'D3_FA',
+      name: 'Level designator ii (T1T2 = FA)',
+      entries: generateIiFromRanges(tables.D3.FA.ranges),
+    };
+  }
+
+  if (t1t2 === 'UA') {
+    return {
+      id: 'D3_UA',
+      name: 'Level designator ii (T1T2 = UA)',
+      entries: generateIiFromRanges(tables.D3.UA.ranges),
+    };
+  }
+
+  const tableId = T1_TO_II_TABLE[T1];
+  if (!tableId) {
+    // Many T1 values don't have specific ii tables
+    // For these, ii can be any 2-digit number (bulletin sequence)
+    return {
+      id: 'generic_ii',
+      name: 'Bulletin number ii',
+      description: 'Sequential bulletin number (00-99)',
+      entries: generateGenericIiCodes(),
+    };
+  }
+
+  switch (tableId) {
+    case 'D1':
+      return { id: 'D1', name: tables.D1.name, entries: tables.D1.entries };
+    case 'D2':
+      return { id: 'D2', name: tables.D2.name, entries: tables.D2.entries };
+    default:
+      return null;
+  }
+}
+
+/**
  * Resolve the appropriate table for a given input string
  */
-export function resolveTable(input: string): {
+export function resolveTable(tables: TtaaiiTables, input: string): {
   position: number;
   field: TtaaiiField;
   table: TableDefinition | null;
@@ -260,19 +270,19 @@ export function resolveTable(input: string): {
 
   switch (field) {
     case 'T1':
-      table = getT1Table();
+      table = getT1Table(tables);
       break;
     case 'T2':
-      table = getT2Table(context);
+      table = getT2Table(tables, context);
       break;
     case 'A1':
-      table = getA1Table(context);
+      table = getA1Table(tables, context);
       break;
     case 'A2':
-      table = getA2Table(context);
+      table = getA2Table(tables, context);
       break;
     case 'ii':
-      table = getIiTable(context);
+      table = getIiTable(tables, context);
       break;
   }
 
@@ -283,6 +293,7 @@ export function resolveTable(input: string): {
  * Validate a character at a given position
  */
 export function validateCharacter(
+  tables: TtaaiiTables,
   char: string,
   position: number,
   context: TtaaiiContext
@@ -292,19 +303,19 @@ export function validateCharacter(
 
   switch (field) {
     case 'T1':
-      table = getT1Table();
+      table = getT1Table(tables);
       break;
     case 'T2':
-      table = getT2Table(context);
+      table = getT2Table(tables, context);
       break;
     case 'A1':
-      table = getA1Table(context);
+      table = getA1Table(tables, context);
       break;
     case 'A2':
-      table = getA2Table(context);
+      table = getA2Table(tables, context);
       break;
     case 'ii':
-      table = getIiTable(context);
+      table = getIiTable(tables, context);
       // For ii, we need to validate both digits together
       if (position === 4) {
         // First digit of ii - can't fully validate yet

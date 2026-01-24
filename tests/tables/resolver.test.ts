@@ -9,6 +9,10 @@ import {
   getA2Table,
   getIiTable,
 } from '../../src/grammar/resolver';
+import type { TtaaiiTables } from '../../src/types';
+import defaultTables from '../../src/grammar/data/tables.json';
+
+const tables = defaultTables as TtaaiiTables;
 
 describe('resolver', () => {
   describe('parseContext()', () => {
@@ -66,7 +70,7 @@ describe('resolver', () => {
 
   describe('getT1Table()', () => {
     it('should return Table A with all T1 entries', () => {
-      const table = getT1Table();
+      const table = getT1Table(tables);
 
       expect(table.id).toBe('A');
       expect(table.entries.length).toBeGreaterThan(20);
@@ -80,7 +84,7 @@ describe('resolver', () => {
 
   describe('getT2Table()', () => {
     it('should return B1 entries for T1=A (Analyses)', () => {
-      const table = getT2Table({ T1: 'A' });
+      const table = getT2Table(tables, { T1: 'A' });
 
       expect(table).not.toBeNull();
       expect(table!.id).toBe('B1');
@@ -91,7 +95,7 @@ describe('resolver', () => {
     });
 
     it('should return B1 entries for T1=F (Forecasts)', () => {
-      const table = getT2Table({ T1: 'F' });
+      const table = getT2Table(tables, { T1: 'F' });
 
       expect(table).not.toBeNull();
       const codes = table!.entries.map(e => e.code);
@@ -101,7 +105,7 @@ describe('resolver', () => {
     });
 
     it('should return B2 entries for T1=D (GRID)', () => {
-      const table = getT2Table({ T1: 'D' });
+      const table = getT2Table(tables, { T1: 'D' });
 
       expect(table).not.toBeNull();
       expect(table!.id).toBe('B2');
@@ -112,7 +116,7 @@ describe('resolver', () => {
     });
 
     it('should return B3 entries for T1=I (BUFR)', () => {
-      const table = getT2Table({ T1: 'I' });
+      const table = getT2Table(tables, { T1: 'I' });
 
       expect(table).not.toBeNull();
       expect(table!.id).toBe('B3');
@@ -123,7 +127,7 @@ describe('resolver', () => {
     });
 
     it('should return B4 entries for T1=O (Oceanographic GRIB)', () => {
-      const table = getT2Table({ T1: 'O' });
+      const table = getT2Table(tables, { T1: 'O' });
 
       expect(table).not.toBeNull();
       expect(table!.id).toBe('B4');
@@ -134,7 +138,7 @@ describe('resolver', () => {
     });
 
     it('should return B5 entries for T1=E (Satellite imagery)', () => {
-      const table = getT2Table({ T1: 'E' });
+      const table = getT2Table(tables, { T1: 'E' });
 
       expect(table).not.toBeNull();
       expect(table!.id).toBe('B5');
@@ -145,14 +149,14 @@ describe('resolver', () => {
     });
 
     it('should return B6 entries for T1=P (Pictorial)', () => {
-      const table = getT2Table({ T1: 'P' });
+      const table = getT2Table(tables, { T1: 'P' });
 
       expect(table).not.toBeNull();
       expect(table!.id).toBe('B6');
     });
 
     it('should return B7 entries for T1=L (Aviation XML)', () => {
-      const table = getT2Table({ T1: 'L' });
+      const table = getT2Table(tables, { T1: 'L' });
 
       expect(table).not.toBeNull();
       expect(table!.id).toBe('B7');
@@ -163,7 +167,7 @@ describe('resolver', () => {
     });
 
     it('should return C7_T2 entries for T1=K (CREX)', () => {
-      const table = getT2Table({ T1: 'K' });
+      const table = getT2Table(tables, { T1: 'K' });
 
       expect(table).not.toBeNull();
       expect(table!.id).toBe('C7_T2');
@@ -174,14 +178,14 @@ describe('resolver', () => {
     });
 
     it('should return null for invalid T1', () => {
-      const table = getT2Table({ T1: 'Z' });
+      const table = getT2Table(tables, { T1: 'Z' });
       expect(table).toBeNull();
     });
   });
 
   describe('getA1Table()', () => {
     it('should return C1 for simple data types', () => {
-      const table = getA1Table({ T1: 'A', T2: 'C' });
+      const table = getA1Table(tables, { T1: 'A', T2: 'C' });
 
       expect(table).not.toBeNull();
       expect(table!.id).toBe('C1');
@@ -189,7 +193,7 @@ describe('resolver', () => {
     });
 
     it('should return C3 for GRID data', () => {
-      const table = getA1Table({ T1: 'D', T2: 'T' });
+      const table = getA1Table(tables, { T1: 'D', T2: 'T' });
 
       expect(table).not.toBeNull();
       expect(table!.id).toBe('C3');
@@ -200,7 +204,7 @@ describe('resolver', () => {
     });
 
     it('should return C6 for BUFR (contextual on T1T2)', () => {
-      const table = getA1Table({ T1: 'I', T2: 'S' });
+      const table = getA1Table(tables, { T1: 'I', T2: 'S' });
 
       expect(table).not.toBeNull();
       expect(table!.id).toBe('C6');
@@ -211,7 +215,7 @@ describe('resolver', () => {
     });
 
     it('should return C7 A1 for CREX (contextual on T2)', () => {
-      const table = getA1Table({ T1: 'K', T2: 'S' });
+      const table = getA1Table(tables, { T1: 'K', T2: 'S' });
 
       expect(table).not.toBeNull();
       expect(table!.id).toBe('C7');
@@ -223,14 +227,14 @@ describe('resolver', () => {
 
   describe('getA2Table()', () => {
     it('should return C1 for simple data types', () => {
-      const table = getA2Table({ T1: 'A', T2: 'C', A1: 'F' });
+      const table = getA2Table(tables, { T1: 'A', T2: 'C', A1: 'F' });
 
       expect(table).not.toBeNull();
       expect(table!.id).toBe('C1');
     });
 
     it('should return C4 for GRID reference time', () => {
-      const table = getA2Table({ T1: 'D', T2: 'T', A1: 'A' });
+      const table = getA2Table(tables, { T1: 'D', T2: 'T', A1: 'A' });
 
       expect(table).not.toBeNull();
       expect(table!.id).toBe('C4');
@@ -241,7 +245,7 @@ describe('resolver', () => {
     });
 
     it('should return C5 for regional pictorial reference time', () => {
-      const table = getA2Table({ T1: 'Q', T2: 'T', A1: 'A' });
+      const table = getA2Table(tables, { T1: 'Q', T2: 'T', A1: 'A' });
 
       expect(table).not.toBeNull();
       expect(table!.id).toBe('C5');
@@ -252,7 +256,7 @@ describe('resolver', () => {
     });
 
     it('should return C3 for BUFR', () => {
-      const table = getA2Table({ T1: 'I', T2: 'S', A1: 'A' });
+      const table = getA2Table(tables, { T1: 'I', T2: 'S', A1: 'A' });
 
       expect(table).not.toBeNull();
       expect(table!.id).toBe('C3');
@@ -261,7 +265,7 @@ describe('resolver', () => {
 
   describe('getIiTable()', () => {
     it('should return D1 for oceanographic (T1=O)', () => {
-      const table = getIiTable({ T1: 'O', T2: 'T', A1: 'A', A2: 'A' });
+      const table = getIiTable(tables, { T1: 'O', T2: 'T', A1: 'A', A2: 'A' });
 
       expect(table).not.toBeNull();
       expect(table!.id).toBe('D1');
@@ -272,7 +276,7 @@ describe('resolver', () => {
     });
 
     it('should return D2 for GRID (T1=D)', () => {
-      const table = getIiTable({ T1: 'D', T2: 'T', A1: 'A', A2: 'A' });
+      const table = getIiTable(tables, { T1: 'D', T2: 'T', A1: 'A', A2: 'A' });
 
       expect(table).not.toBeNull();
       expect(table!.id).toBe('D2');
@@ -283,7 +287,7 @@ describe('resolver', () => {
     });
 
     it('should return FA ii codes for T1T2=FA', () => {
-      const table = getIiTable({ T1: 'F', T2: 'A' });
+      const table = getIiTable(tables, { T1: 'F', T2: 'A' });
 
       expect(table).not.toBeNull();
       expect(table!.id).toBe('D3_FA');
@@ -294,7 +298,7 @@ describe('resolver', () => {
     });
 
     it('should return UA ii codes for T1T2=UA', () => {
-      const table = getIiTable({ T1: 'U', T2: 'A' });
+      const table = getIiTable(tables, { T1: 'U', T2: 'A' });
 
       expect(table).not.toBeNull();
       expect(table!.id).toBe('D3_UA');
@@ -305,7 +309,7 @@ describe('resolver', () => {
     });
 
     it('should return generic ii for types without specific table', () => {
-      const table = getIiTable({ T1: 'S', T2: 'A', A1: 'F', A2: 'R' });
+      const table = getIiTable(tables, { T1: 'S', T2: 'A', A1: 'F', A2: 'R' });
 
       expect(table).not.toBeNull();
       expect(table!.id).toBe('generic_ii');
@@ -315,7 +319,7 @@ describe('resolver', () => {
 
   describe('resolveTable()', () => {
     it('should resolve T1 table for empty input', () => {
-      const result = resolveTable('');
+      const result = resolveTable(tables, '');
 
       expect(result.position).toBe(0);
       expect(result.field).toBe('T1');
@@ -324,7 +328,7 @@ describe('resolver', () => {
     });
 
     it('should resolve T2 table for single character input', () => {
-      const result = resolveTable('F');
+      const result = resolveTable(tables, 'F');
 
       expect(result.position).toBe(1);
       expect(result.field).toBe('T2');
@@ -332,7 +336,7 @@ describe('resolver', () => {
     });
 
     it('should include context in result', () => {
-      const result = resolveTable('ACFR');
+      const result = resolveTable(tables, 'ACFR');
 
       expect(result.context.T1).toBe('A');
       expect(result.context.T2).toBe('C');
