@@ -1,6 +1,26 @@
 <section class="playground">
   <h2>Playground</h2>
 
+  <p class="section-intro">
+    This library is <strong>UI-agnostic</strong> and works with any framework (Angular, React, Vue.js, etc.).
+    Below is an interactive example using Angular Material's autocomplete component.
+    Click on the <code>groupBy</code> value to change it and see the result.
+  </p>
+
+  <!-- Interactive Code with groupBy selector -->
+  <interactive-code language="typescript">
+    <textarea>const result = provider.complete(input, { groupBy: ${groupBy} });
+
+// Use result.items for flat list
+// Use result.groups for grouped display (when groupBy is set)</textarea>
+    <code-binding
+      key="groupBy"
+      type="select"
+      options="undefined,'continent'"
+      value="undefined">
+    </code-binding>
+  </interactive-code>
+
   <!-- TTAAII Input -->
   <div class="input-section">
     <mat-form-field appearance="outline" class="ttaaii-input">
@@ -14,17 +34,16 @@
         [matAutocomplete]="auto"
         [matAutocompleteDisabled]="false"
         placeholder="SAFR01"
-        maxlength="6"
+        maxlength="20"
         autocomplete="off"
       />
-      <mat-hint>{{ fieldLabels[currentField()] }} (Position {{ position() }})</mat-hint>
       @if (inputValue()) {
         <button matSuffix mat-icon-button (click)="clearInput()" matTooltip="Clear">
           <mat-icon>clear</mat-icon>
         </button>
       }
 
-      <mat-autocomplete #auto="matAutocomplete" (optionSelected)="selectOption($event.option.value)" class="ttaaii-autocomplete">
+      <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayFn" (optionSelected)="selectOption($event.option.value)" class="ttaaii-autocomplete" panelWidth="auto">
         @if (groups(); as groupList) {
           <!-- Grouped display -->
           @for (group of groupList; track trackByKey($index, group)) {
@@ -67,22 +86,62 @@
       <button mat-stroked-button (click)="backspace()" [disabled]="!inputValue()">
         <mat-icon>backspace</mat-icon>
       </button>
-      <button mat-stroked-button (click)="toggleGrouping()" [class.active]="groupByContinent()">
-        <mat-icon>{{ groupByContinent() ? 'folder' : 'list' }}</mat-icon>
-        {{ groupByContinent() ? 'Grouped' : 'Flat' }}
-      </button>
     </div>
   </div>
 
   <!-- Current Code Display -->
   <div class="code-display">
     <div class="code-chars">
-      @for (char of ['T1', 'T2', 'A1', 'A2', 'i', 'i']; track $index; let i = $index) {
-        <div class="char-box" [class.active]="position() === i" [class.filled]="inputValue().length > i">
-          <span class="char-label">{{ char }}</span>
-          <span class="char-value">{{ inputValue()[i] || '_' }}</span>
-        </div>
-      }
+      <!-- T1 -->
+      <div class="char-box" [class.active]="position() === 0" [class.filled]="committedInput().length > 0" [class.filtering]="position() === 0 && filterText()">
+        <span class="char-label">T1</span>
+        <span class="char-value">{{ committedInput()[0] || (position() === 0 && filterText() ? filterText() : '_') }}</span>
+        @if (decoded().dataType) {
+          <span class="char-meaning">{{ decoded().dataType!.label }}</span>
+        } @else if (position() === 0 && filterText()) {
+          <span class="char-filter">filtering...</span>
+        }
+      </div>
+      <!-- T2 -->
+      <div class="char-box" [class.active]="position() === 1" [class.filled]="committedInput().length > 1" [class.filtering]="position() === 1 && filterText()">
+        <span class="char-label">T2</span>
+        <span class="char-value">{{ committedInput()[1] || (position() === 1 && filterText() ? filterText() : '_') }}</span>
+        @if (decoded().dataSubtype) {
+          <span class="char-meaning">{{ decoded().dataSubtype!.label }}</span>
+        } @else if (position() === 1 && filterText()) {
+          <span class="char-filter">filtering...</span>
+        }
+      </div>
+      <!-- A1 -->
+      <div class="char-box" [class.active]="position() === 2" [class.filled]="committedInput().length > 2" [class.filtering]="position() === 2 && filterText()">
+        <span class="char-label">A1</span>
+        <span class="char-value">{{ committedInput()[2] || (position() === 2 && filterText() ? filterText() : '_') }}</span>
+        @if (decoded().areaOrType1) {
+          <span class="char-meaning">{{ decoded().areaOrType1!.label }}</span>
+        } @else if (position() === 2 && filterText()) {
+          <span class="char-filter">filtering...</span>
+        }
+      </div>
+      <!-- A2 -->
+      <div class="char-box" [class.active]="position() === 3" [class.filled]="committedInput().length > 3" [class.filtering]="position() === 3 && filterText()">
+        <span class="char-label">A2</span>
+        <span class="char-value">{{ committedInput()[3] || (position() === 3 && filterText() ? filterText() : '_') }}</span>
+        @if (decoded().areaOrTime2) {
+          <span class="char-meaning">{{ decoded().areaOrTime2!.label }}</span>
+        } @else if (position() === 3 && filterText()) {
+          <span class="char-filter">filtering...</span>
+        }
+      </div>
+      <!-- ii -->
+      <div class="char-box ii-box" [class.active]="position() >= 4" [class.filled]="committedInput().length > 4" [class.filtering]="position() >= 4 && filterText()">
+        <span class="char-label">ii</span>
+        <span class="char-value">{{ committedInput().slice(4, 6) || (position() >= 4 && filterText() ? filterText() : '__') }}</span>
+        @if (decoded().level) {
+          <span class="char-meaning">{{ decoded().level!.label }}</span>
+        } @else if (position() >= 4 && filterText()) {
+          <span class="char-filter">filtering...</span>
+        }
+      </div>
     </div>
 
     @if (isComplete()) {
@@ -94,7 +153,7 @@
   </div>
 
   <!-- Decoded JSON -->
-  @if (inputValue()) {
+  @if (committedInput()) {
     <div class="decoded-section">
       <h3>Decoded Output</h3>
       <interactive-code language="json">
@@ -103,28 +162,226 @@
     </div>
   }
 
-  <!-- Usage Examples -->
+  <!-- Framework Examples -->
   <div class="usage-section">
-    <h3>Usage</h3>
+    <h3>Framework Examples</h3>
+    <p class="section-intro">
+      Minimal implementation examples for each framework. Click on the <code>groupBy</code> value to toggle grouping.
+    </p>
 
-    <h4>Flat List (default)</h4>
-    <interactive-code language="typescript">
-      <textarea>const result = provider.complete('SA');
-// result.items = [
-//   { code: 'A', label: 'Afghanistan' },
-//   { code: 'B', label: 'Albania' },
-//   ...
-// ]</textarea>
-    </interactive-code>
+    <!-- Angular Example -->
+    <h4>Angular</h4>
+    <mat-tab-group class="framework-tabs" animationDuration="0ms" [preserveContent]="true">
+      <mat-tab label="component.ts">
+        <interactive-code language="typescript">
+          <textarea>import { Component, computed } from '@angular/core';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { TtaaiiProvider } from '@softwarity/ttaaii-provider';
 
-    <h4>Grouped by Continent</h4>
-    <interactive-code language="typescript">
-      <textarea>const result = provider.complete('SA', { groupBy: 'continent' });
-// result.groups = [
-//   { key: 'EU', label: 'Europe', items: [...] },
-//   { key: 'AF', label: 'Africa', items: [...] },
-//   ...
-// ]</textarea>
-    </interactive-code>
+@Component({
+  selector: 'app-ttaaii-input',
+  imports: [ReactiveFormsModule, MatAutocompleteModule],
+  templateUrl: './ttaaii-input.component.html'
+})
+export class TtaaiiInputComponent {
+  private provider = new TtaaiiProvider();
+
+  inputCtrl = new FormControl('');
+  private input = toSignal(this.inputCtrl.valueChanges, { initialValue: '' });
+
+  completions = computed(() =>
+    this.provider.complete(this.input()?.toUpperCase() ?? '', { groupBy: ${angularGroupBy} })
+  );
+
+  selectItem(code: string) {
+    this.inputCtrl.setValue((this.inputCtrl.value ?? '') + code);
+  }
+}</textarea>
+          <code-binding key="angularGroupBy" type="select" options="undefined,'continent'" value="undefined"></code-binding>
+        </interactive-code>
+      </mat-tab>
+      <mat-tab label="component.html">
+        <interactive-code language="html" [class.hidden]="angularGroupBy()">
+          <textarea>&lt;input [formControl]="inputCtrl" [matAutocomplete]="auto" /&gt;
+
+&lt;mat-autocomplete #auto (optionSelected)="selectItem($event.option.value)"&gt;
+  &#64;for (item of completions().items; track item.code) &#123;
+    &lt;mat-option [value]="item.code"&gt;
+      &#123;&#123; item.code &#125;&#125; - &#123;&#123; item.label &#125;&#125;
+    &lt;/mat-option&gt;
+  &#125;
+&lt;/mat-autocomplete&gt;</textarea>
+        </interactive-code>
+        <interactive-code language="html" [class.hidden]="!angularGroupBy()">
+          <textarea>&lt;input [formControl]="inputCtrl" [matAutocomplete]="auto" /&gt;
+
+&lt;mat-autocomplete #auto (optionSelected)="selectItem($event.option.value)"&gt;
+  &#64;for (group of completions().groups; track group.key) &#123;
+    &lt;mat-optgroup [label]="group.label"&gt;
+      &#64;for (item of group.items; track item.code) &#123;
+        &lt;mat-option [value]="item.code"&gt;
+          &#123;&#123; item.code &#125;&#125; - &#123;&#123; item.label &#125;&#125;
+        &lt;/mat-option&gt;
+      &#125;
+    &lt;/mat-optgroup&gt;
+  &#125;
+&lt;/mat-autocomplete&gt;</textarea>
+        </interactive-code>
+      </mat-tab>
+    </mat-tab-group>
+
+    <!-- React Example -->
+    <h4>React</h4>
+    <mat-tab-group class="framework-tabs" animationDuration="0ms" [preserveContent]="true">
+      <mat-tab label="TtaaiiInput.tsx">
+        <interactive-code language="tsx" show-separators>
+          <textarea>import { useState, useMemo } from 'react';
+import { TtaaiiProvider } from '@softwarity/ttaaii-provider';
+
+const provider = new TtaaiiProvider();
+
+export function TtaaiiInput() {
+  const [input, setInput] = useState('');
+  const completions = useMemo(
+    () => provider.complete(input, { groupBy: ${reactGroupBy} }),
+    [input]
+  );
+
+  return (
+    &lt;div&gt;
+      &lt;input
+        value={input}
+        onChange={(e) => setInput(e.target.value.toUpperCase())}
+        maxLength={6}
+      /&gt;</textarea>
+          <textarea condition="!reactGroupBy">      &lt;ul className="completions"&gt;
+        {completions.items.map((item) =&gt; (
+          &lt;li key={item.code} onClick={() =&gt; setInput(input + item.code)}&gt;
+            {item.code} - {item.label}
+          &lt;/li&gt;
+        ))}
+      &lt;/ul&gt;</textarea>
+          <textarea condition="reactGroupBy">      &lt;ul className="completions"&gt;
+        {completions.groups.map((group) =&gt; (
+          &lt;li key={group.key} className="group"&gt;
+            &lt;strong&gt;{group.label}&lt;/strong&gt;
+            &lt;ul&gt;
+              {group.items.map((item) =&gt; (
+                &lt;li key={item.code} onClick={() =&gt; setInput(input + item.code)}&gt;
+                  {item.code} - {item.label}
+                &lt;/li&gt;
+              ))}
+            &lt;/ul&gt;
+          &lt;/li&gt;
+        ))}
+      &lt;/ul&gt;</textarea>
+          <textarea>    &lt;/div&gt;
+  );
+}</textarea>
+          <code-binding key="reactGroupBy" type="select" options="undefined,'continent'" value="undefined"></code-binding>
+        </interactive-code>
+      </mat-tab>
+      <mat-tab label="styles.css">
+        <interactive-code language="css">
+          <textarea>.completions {
+  list-style: none;
+  padding: 0;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.completions li {
+  padding: 8px;
+  cursor: pointer;
+}
+
+.completions li:hover {
+  background: #f0f0f0;
+}
+
+.group > strong {
+  display: block;
+  padding: 8px;
+  background: #e0e0e0;
+}</textarea>
+        </interactive-code>
+      </mat-tab>
+    </mat-tab-group>
+
+    <!-- Vue.js Example -->
+    <h4>Vue.js</h4>
+    <mat-tab-group class="framework-tabs" animationDuration="0ms" [preserveContent]="true">
+      <mat-tab label="TtaaiiInput.vue">
+        <interactive-code language="html" show-separators>
+          <textarea>&lt;script setup lang="ts"&gt;
+import { ref, computed } from 'vue';
+import { TtaaiiProvider } from '@softwarity/ttaaii-provider';
+
+const provider = new TtaaiiProvider();
+const input = ref('');
+
+const completions = computed(() =>
+  provider.complete(input.value, { groupBy: ${vueGroupBy} })
+);
+
+function onInput(event: Event) {
+  input.value = (event.target as HTMLInputElement).value.toUpperCase();
+}
+
+function selectItem(code: string) {
+  input.value += code;
+}
+&lt;/script&gt;
+
+&lt;template&gt;
+  &lt;input :value="input" @input="onInput" maxlength="6" /&gt;</textarea>
+          <textarea condition="!vueGroupBy">
+  &lt;ul class="completions"&gt;
+    &lt;li v-for="item in completions.items" :key="item.code" @click="selectItem(item.code)"&gt;
+      &#123;&#123; item.code &#125;&#125; - &#123;&#123; item.label &#125;&#125;
+    &lt;/li&gt;
+  &lt;/ul&gt;</textarea>
+          <textarea condition="vueGroupBy">
+  &lt;ul class="completions"&gt;
+    &lt;li v-for="group in completions.groups" :key="group.key" class="group"&gt;
+      &lt;strong&gt;&#123;&#123; group.label &#125;&#125;&lt;/strong&gt;
+      &lt;ul&gt;
+        &lt;li v-for="item in group.items" :key="item.code" @click="selectItem(item.code)"&gt;
+          &#123;&#123; item.code &#125;&#125; - &#123;&#123; item.label &#125;&#125;
+        &lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/li&gt;
+  &lt;/ul&gt;</textarea>
+          <textarea>&lt;/template&gt;</textarea>
+          <code-binding key="vueGroupBy" type="select" options="undefined,'continent'" value="undefined"></code-binding>
+        </interactive-code>
+      </mat-tab>
+      <mat-tab label="style.css">
+        <interactive-code language="css">
+          <textarea>.completions {
+  list-style: none;
+  padding: 0;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.completions li {
+  padding: 8px;
+  cursor: pointer;
+}
+
+.completions li:hover {
+  background: #f0f0f0;
+}
+
+.group > strong {
+  display: block;
+  padding: 8px;
+  background: #e0e0e0;
+}</textarea>
+        </interactive-code>
+      </mat-tab>
+    </mat-tab-group>
   </div>
 </section>

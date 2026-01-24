@@ -38,6 +38,7 @@
   "author": "Softwarity",
   "license": "MIT",
   "devDependencies": {
+    "@softwarity/interactive-code": "^1.0.6",
     "@angular/animations": "^19.2.0",
     "@angular/build": "^19.2.0",
     "@angular/cli": "^19.2.0",
@@ -50,7 +51,6 @@
     "@angular/platform-browser": "^19.2.0",
     "@angular/platform-browser-dynamic": "^19.2.0",
     "@angular/router": "^19.2.0",
-    "@softwarity/interactive-code": "^1.0.5",
     "@types/node": "^22.0.0",
     "rxjs": "^7.8.0",
     "tslib": "^2.8.0",

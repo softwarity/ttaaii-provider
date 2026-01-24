@@ -2,8 +2,26 @@
   display: block;
 }
 
+// Hide interactive-code conditionally
+interactive-code.hidden {
+  display: none !important;
+}
+
 .playground {
   margin-bottom: 32px;
+  padding-bottom: 48px;
+
+  > .section-intro {
+    margin: 0 0 24px 0;
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  > interactive-code {
+    display: block;
+    margin-bottom: 24px;
+  }
 }
 
 
@@ -40,6 +58,8 @@
 
 // Autocomplete styling
 ::ng-deep .ttaaii-autocomplete {
+  min-width: 350px !important;
+
   .mat-mdc-option {
     height: auto !important;
     min-height: 48px;
@@ -91,17 +111,19 @@
 // Code Display
 .code-display {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 24px;
   margin-bottom: 32px;
   padding: 16px;
   background: var(--bg-secondary);
   border-radius: 8px;
   border: 1px solid var(--border-color);
+  flex-wrap: wrap;
 
   .code-chars {
     display: flex;
     gap: 8px;
+    flex-wrap: wrap;
   }
 
   .char-box {
@@ -112,7 +134,8 @@
     background: var(--bg-primary);
     border: 2px solid var(--border-color);
     border-radius: 6px;
-    min-width: 48px;
+    min-width: 80px;
+    max-width: 140px;
     transition: all 0.2s;
 
     &.active {
@@ -122,6 +145,22 @@
 
     &.filled {
       background: rgba(88, 166, 255, 0.1);
+    }
+
+    &.filtering {
+      border-color: var(--accent-purple);
+      box-shadow: 0 0 0 3px rgba(163, 113, 247, 0.2);
+
+      .char-value {
+        color: var(--accent-purple);
+        opacity: 0.7;
+      }
+    }
+
+    &.ii-box {
+      .char-value {
+        letter-spacing: 0.2em;
+      }
     }
 
     .char-label {
@@ -135,6 +174,26 @@
       font-size: 1.5rem;
       font-weight: 600;
       color: var(--text-primary);
+    }
+
+    .char-meaning {
+      font-size: 0.7rem;
+      color: var(--accent-blue);
+      text-align: center;
+      margin-top: 4px;
+      line-height: 1.2;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .char-filter {
+      font-size: 0.65rem;
+      color: var(--accent-purple);
+      text-align: center;
+      margin-top: 4px;
+      font-style: italic;
     }
   }
 
@@ -167,24 +226,98 @@
 // Usage Section
 .usage-section {
   h3 {
-    margin: 0 0 16px 0;
+    margin: 0 0 12px 0;
     font-size: 1rem;
     font-weight: 600;
     color: var(--text-primary);
   }
 
-  h4 {
-    margin: 16px 0 8px 0;
-    font-size: 0.9rem;
-    font-weight: 500;
+  .section-intro {
+    margin: 0 0 24px 0;
+    font-size: 0.95rem;
     color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  h4 {
+    margin: 24px 0 12px 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary);
 
     &:first-of-type {
       margin-top: 0;
     }
   }
 
+  .code-description {
+    margin: 0 0 12px 0;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+
+    code {
+      font-size: 0.85rem;
+    }
+  }
+
   interactive-code {
-    margin-bottom: 16px;
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  // Framework tabs styling
+  .framework-tabs {
+    margin-bottom: 24px;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+
+    ::ng-deep {
+      .mat-mdc-tab-header {
+        background: rgba(0, 0, 0, 0.2);
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      .mat-mdc-tab-labels {
+        gap: 0;
+      }
+
+      .mat-mdc-tab {
+        min-width: 100px;
+        padding: 0 16px;
+        opacity: 0.7;
+
+        &.mdc-tab--active {
+          opacity: 1;
+        }
+
+        .mdc-tab__text-label {
+          font-size: 0.8rem;
+          font-family: 'Courier New', Consolas, monospace;
+          color: var(--text-secondary);
+        }
+      }
+
+      .mat-mdc-tab-body-wrapper {
+        padding: 0;
+      }
+
+      .mat-mdc-tab-body-content {
+        padding: 0;
+      }
+
+      interactive-code {
+        margin: 0;
+        border-radius: 0;
+
+        // Remove border since parent has it
+        > div {
+          border: none;
+          border-radius: 0;
+        }
+      }
+    }
   }
 }
