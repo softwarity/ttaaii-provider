@@ -116,7 +116,7 @@ const provider = new TtaaiiProvider(tables);</textarea>
         <span class="char-label">T1</span>
         <span class="char-value">{{ committedInput()[0] || (position() === 0 && filterText() ? filterText() : '_') }}</span>
         @if (decoded().dataType) {
-          <span class="char-meaning">{{ decoded().dataType!.label }}</span>
+          <span class="char-meaning" [matTooltip]="decoded().dataType!.label">{{ decoded().dataType!.label }}</span>
         } @else if (position() === 0 && filterText()) {
           <span class="char-filter">filtering...</span>
         }
@@ -126,7 +126,7 @@ const provider = new TtaaiiProvider(tables);</textarea>
         <span class="char-label">T2</span>
         <span class="char-value">{{ committedInput()[1] || (position() === 1 && filterText() ? filterText() : '_') }}</span>
         @if (decoded().dataSubtype) {
-          <span class="char-meaning">{{ decoded().dataSubtype!.label }}</span>
+          <span class="char-meaning" [matTooltip]="decoded().dataSubtype!.label">{{ decoded().dataSubtype!.label }}</span>
         } @else if (position() === 1 && filterText()) {
           <span class="char-filter">filtering...</span>
         }
@@ -137,10 +137,10 @@ const provider = new TtaaiiProvider(tables);</textarea>
         <span class="char-value">{{ committedInput()[2] || (position() === 2 && filterText() ? filterText() : '_') }}</span>
         @if (decoded().areaOrType1 && decoded().areaOrType1!.code.length === 1) {
           <!-- Single char A1 (partial country or non-country table) -->
-          <span class="char-meaning">{{ decoded().areaOrType1!.label }}</span>
+          <span class="char-meaning" [matTooltip]="decoded().areaOrType1!.label">{{ decoded().areaOrType1!.label }}</span>
         } @else if (decoded().areaOrType1 && decoded().areaOrType1!.code.length === 2) {
           <!-- Combined country code - show code in A1 -->
-          <span class="char-meaning">{{ decoded().areaOrType1!.code }}</span>
+          <span class="char-meaning" [matTooltip]="decoded().areaOrType1!.code">{{ decoded().areaOrType1!.code }}</span>
         } @else if (position() === 2 && filterText()) {
           <span class="char-filter">filtering...</span>
         }
@@ -151,10 +151,10 @@ const provider = new TtaaiiProvider(tables);</textarea>
         <span class="char-value">{{ committedInput()[3] || (position() === 3 && filterText() ? filterText() : '_') }}</span>
         @if (decoded().areaOrTime2) {
           <!-- Separate A2 value (BUFR, GRID, etc.) -->
-          <span class="char-meaning">{{ decoded().areaOrTime2!.label }}</span>
+          <span class="char-meaning" [matTooltip]="decoded().areaOrTime2!.label">{{ decoded().areaOrTime2!.label }}</span>
         } @else if (decoded().areaOrType1 && decoded().areaOrType1!.code.length === 2) {
           <!-- Combined country code - show country name in A2 -->
-          <span class="char-meaning">{{ decoded().areaOrType1!.label }}</span>
+          <span class="char-meaning" [matTooltip]="decoded().areaOrType1!.label">{{ decoded().areaOrType1!.label }}</span>
         } @else if (position() === 3 && filterText()) {
           <span class="char-filter">filtering...</span>
         }
@@ -164,7 +164,7 @@ const provider = new TtaaiiProvider(tables);</textarea>
         <span class="char-label">ii</span>
         <span class="char-value">{{ committedInput().slice(4, 6) || (position() >= 4 && filterText() ? filterText() : '__') }}</span>
         @if (decoded().level) {
-          <span class="char-meaning">{{ decoded().level!.label }}</span>
+          <span class="char-meaning" [matTooltip]="decoded().level!.label">{{ decoded().level!.label }}</span>
         } @else if (position() >= 4 && filterText()) {
           <span class="char-filter">filtering...</span>
         }
@@ -173,7 +173,7 @@ const provider = new TtaaiiProvider(tables);</textarea>
 
     @if (isComplete()) {
       <mat-chip class="complete-chip" highlighted>
-        <mat-icon>check_circle</mat-icon>
+        <mat-icon matChipAvatar>check_circle</mat-icon>
         Complete
       </mat-chip>
     }
