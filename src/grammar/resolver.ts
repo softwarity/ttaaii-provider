@@ -13,13 +13,14 @@ export function isC2StationType(A1: string | undefined): boolean {
 // Mappings: which table to use based on T1
 const T1_TO_T2_TABLE: Record<string, string> = {
   'A': 'B1', 'C': 'B1', 'F': 'B1', 'N': 'B1', 'S': 'B1', 'T': 'B1', 'U': 'B1', 'W': 'B1',
-  'D': 'B2', 'G': 'B2', 'H': 'B2', 'Y': 'B2',
+  'D': 'B2', 'G': 'B2', 'H': 'B2', 'V': 'B2', 'X': 'B2', 'Y': 'B2',  // Added V (national) and X (CAP)
   'I': 'B3', 'J': 'B3',
   'O': 'B4',
   'E': 'B5',
   'P': 'B6', 'Q': 'B6',
   'L': 'B7',
   'K': 'C7_T2',
+  // Note: B (Addressed message) has special handling per WMO-386 paragraph 2.4.2
 };
 
 // Fixed according to WMO-386 Table A
@@ -27,7 +28,7 @@ const T1_TO_A1_TABLE: Record<string, string> = {
   // C1 (2-char country codes) - for meteorological info
   'A': 'C1', 'C': 'C1', 'E': 'C1', 'F': 'C1', 'L': 'C1', 'N': 'C1', 'S': 'C1', 'U': 'C1', 'V': 'C1', 'W': 'C1',
   // C3 (single char geographical areas)
-  'D': 'C3', 'G': 'C3', 'H': 'C3', 'O': 'C3', 'P': 'C3', 'Q': 'C3', 'T': 'C3', 'Y': 'C3',
+  'D': 'C3', 'G': 'C3', 'H': 'C3', 'O': 'C3', 'P': 'C3', 'Q': 'C3', 'T': 'C3', 'X': 'C3', 'Y': 'C3',
   // C6 (BUFR data types) - handled specially
   'I': 'C6', 'J': 'C6',
   // C7 (CREX) - handled specially
@@ -43,12 +44,12 @@ const T1_TO_A2_TABLE: Record<string, string> = {
   // C4 (reference time)
   'D': 'C4', 'G': 'C4', 'H': 'C4', 'J': 'C4', 'O': 'C4', 'P': 'C4', 'T': 'C4',
   // C5 (reference time for regional)
-  'Q': 'C5', 'Y': 'C5',
+  'Q': 'C5', 'X': 'C5', 'Y': 'C5',
 };
 
 const T1_TO_II_TABLE: Record<string, string> = {
   'O': 'D1',
-  'D': 'D2', 'G': 'D2', 'H': 'D2', 'J': 'D2', 'P': 'D2', 'Q': 'D2', 'Y': 'D2',
+  'D': 'D2', 'G': 'D2', 'H': 'D2', 'J': 'D2', 'P': 'D2', 'Q': 'D2', 'X': 'D2', 'Y': 'D2',
 };
 
 /**

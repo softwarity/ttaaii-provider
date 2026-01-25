@@ -2,9 +2,68 @@
 
 ## 1.0.4
 
+### Features
+
+- **WMO-386 table reference in responses**:
+  - All `CompletionItem` now include a `table` field indicating which WMO-386 table the entry comes from
+  - `decode()` results include `table` field in each decoded field (dataType, dataSubtype, areaOrType1, areaOrTime2, level)
+  - Autocomplete dropdown displays table ID as watermark (top-right corner)
+
+- **Complete T1=X (CAP messages) mapping**:
+  - Added T2 → B2 (GRIB data types)
+  - Added A1 → C3 (geographical area)
+  - Added A2 → C5 (regional reference time)
+  - Added ii → D2 (level designator)
+
+- **Complete T1=V (National data) mapping**:
+  - Added T2 → B2 (or national table)
+  - A1/A2 use C1 (country codes)
+
+### Tests
+
+- **WMO-386 Table A comprehensive coverage**:
+  - Added 98 tests covering all T1 values (A-Z)
+  - Tests verify correct T2, A1, A2, and ii table mappings
+  - Includes special cases: C1/C2 combined tables for S and U, D3_FA/D3_UA for aviation
+  - Validates unused T1 values (B, M, R, Z) return null
+
+### Improvements
+
+- Added tooltips on truncated text in decoded field display
+- Improved mat-chip icon vertical alignment using `matChipAvatar`
+
 ---
 
 ## 1.0.3
+
+### Features
+
+- **C2 table support for ships and oceanographic data**:
+  - Added station type handling (W = Ocean weather stations, V = Mobile ships, F = Floats)
+  - For T1=S (Surface) and T1=U (Upper-air), A1 now supports both C1 (countries) and C2 (station types)
+  - A2 dynamically uses C2 (ocean areas) when A1 is a C2 station type, otherwise C1 (countries)
+  - `isC2StationType()` helper function exported
+
+- **Table metadata in entries**:
+  - C1/C2 combined entries include `metadata.table` to indicate source table
+  - Enables proper display of which WMO-386 table each option comes from
+
+- **i18n improvements**:
+  - Tables now exported as separate files: `tables.en.json` and `tables.fr.json`
+  - C2 table entries (A1 and A2) added to both language files
+  - Build process copies JSON tables to dist
+
+### Improvements
+
+- **Demo playground enhancements**:
+  - Integrated PrismJS for JSON syntax highlighting in code display
+  - Added interactive code examples with framework tabs (Angular, React, Vue)
+  - Improved visual feedback for filtering state
+
+### Bug Fixes
+
+- Fixed C2 A1 codes not being available for T1=S and T1=U data types
+- Fixed ocean area designators (C2 A2) not showing when A1 is W, V, or F
 
 ---
 

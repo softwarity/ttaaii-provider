@@ -181,6 +181,20 @@ describe('resolver', () => {
       const table = getT2Table(tables, { T1: 'Z' });
       expect(table).toBeNull();
     });
+
+    it('should return B2 entries for T1=V (National data)', () => {
+      const table = getT2Table(tables, { T1: 'V' });
+
+      expect(table).not.toBeNull();
+      expect(table!.id).toBe('B2');
+    });
+
+    it('should return B2 entries for T1=X (CAP messages)', () => {
+      const table = getT2Table(tables, { T1: 'X' });
+
+      expect(table).not.toBeNull();
+      expect(table!.id).toBe('B2');
+    });
   });
 
   describe('getA1Table()', () => {
@@ -255,6 +269,17 @@ describe('resolver', () => {
       const codes = table!.entries.map(e => e.code);
       expect(codes).toContain('A'); // Automatic obs
     });
+
+    it('should return C3 for T1=X (CAP messages)', () => {
+      const table = getA1Table(tables, { T1: 'X', T2: 'T' });
+
+      expect(table).not.toBeNull();
+      expect(table!.id).toBe('C3');
+
+      const codes = table!.entries.map(e => e.code);
+      expect(codes).toContain('A'); // NH quadrant
+      expect(codes).toContain('X'); // Global
+    });
   });
 
   describe('getA2Table()', () => {
@@ -292,6 +317,16 @@ describe('resolver', () => {
       const codes = table!.entries.map(e => e.code);
       expect(codes).toContain('A'); // Analysis
       expect(codes).toContain('Q'); // 48h forecast
+    });
+
+    it('should return C5 for T1=X (CAP messages)', () => {
+      const table = getA2Table(tables, { T1: 'X', T2: 'T', A1: 'A' });
+
+      expect(table).not.toBeNull();
+      expect(table!.id).toBe('C5');
+
+      const codes = table!.entries.map(e => e.code);
+      expect(codes).toContain('A'); // Analysis
     });
 
     it('should return C3 for BUFR', () => {
@@ -348,6 +383,13 @@ describe('resolver', () => {
       const codes = table!.entries.map(e => e.code);
       expect(codes).toContain('50'); // 500 hPa
       expect(codes).toContain('85'); // 850 hPa
+    });
+
+    it('should return D2 for T1=X (CAP messages)', () => {
+      const table = getIiTable(tables, { T1: 'X', T2: 'T', A1: 'A', A2: 'A' });
+
+      expect(table).not.toBeNull();
+      expect(table!.id).toBe('D2');
     });
 
     it('should return FA ii codes for T1T2=FA', () => {
