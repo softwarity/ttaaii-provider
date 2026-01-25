@@ -29,7 +29,7 @@ import {
   DecodedTtaaii,
   TtaaiiTables,
   VERSION,
-} from '../../../../src';
+} from '@softwarity/ttaaii-provider';
 import { environment } from '../../environments/environment';
 
 // PrismJS for syntax highlighting
@@ -63,7 +63,7 @@ export class PlaygroundComponent implements OnInit, AfterViewInit, OnDestroy {
   private autoTrigger = viewChild<MatAutocompleteTrigger>(MatAutocompleteTrigger);
   private codeBindingListener?: () => void;
 
-  // Library version
+  // Library version (from built library)
   protected readonly version = VERSION;
 
   // Available tables for i18n (loaded dynamically)

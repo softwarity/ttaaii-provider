@@ -14,7 +14,7 @@
     "experimentalDecorators": true,
     "useDefineForClassFields": false,
     "paths": {
-      "@softwarity/ttaaii-provider": ["../dist/ttaaii-provider.es.js"]
+      "@softwarity/ttaaii-provider": ["../dist/index.d.ts", "../dist/ttaaii-provider.es.js"]
     }
   },
   "files": ["src/main.ts"],
