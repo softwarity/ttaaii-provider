@@ -241,4 +241,13 @@ export interface TtaaiiTables {
     FA: { ranges: { start: number; end: number; label: string }[] };
     UA: { ranges: { start: number; end: number; label: string }[] };
   };
+  /** Localization strings */
+  localization?: {
+    /** Template for country first char labels: "Pays commençant par {char} ({count} entrées)" */
+    countriesStartingWith: string;
+    /** Template for combined A2 labels: "Pays commençant par {char} ou zones océaniques" */
+    countriesOrOceanAreas: string;
+    /** Continent labels for grouping */
+    continents: Record<string, string>;
+  };
 }

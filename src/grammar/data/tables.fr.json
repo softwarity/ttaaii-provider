@@ -934,5 +934,21 @@
         { "start": 80, "end": 99, "label": "Réservé" }
       ]
     }
+  },
+  "localization": {
+    "countriesStartingWith": "Pays commençant par {char} ({count} entrées)",
+    "countriesOrOceanAreas": "Pays commençant par {char} ou zones océaniques",
+    "continents": {
+      "EU": "Europe",
+      "AF": "Afrique",
+      "AS": "Asie",
+      "NA": "Amérique du Nord",
+      "SA": "Amérique du Sud",
+      "CA": "Caraïbes et Amérique Centrale",
+      "OC": "Océanie",
+      "AN": "Antarctique",
+      "AREA": "Indicatifs de zone",
+      "OTHER": "Autre"
+    }
   }
 }

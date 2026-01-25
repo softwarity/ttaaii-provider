@@ -153,6 +153,13 @@ export function getT2Table(tables: TtaaiiTables, context: TtaaiiContext): TableD
 }
 
 /**
+ * Format a localized template string
+ */
+function formatTemplate(template: string, vars: Record<string, string | number>): string {
+  return template.replace(/\{(\w+)\}/g, (_, key) => String(vars[key] ?? key));
+}
+
+/**
  * Get unique first characters from country codes for A1 completion
  * Includes ALL first characters, even those that overlap with C2 station types (W, V, F)
  */
@@ -169,11 +176,15 @@ function getA1EntriesFromCountries(tables: TtaaiiTables): TableEntry[] {
     }
   }
 
+  // Get localized template or fallback to English
+  const template = tables.localization?.countriesStartingWith
+    ?? 'Countries starting with {char} ({count} entries)';
+
   const entries: TableEntry[] = [];
   for (const [char, countries] of firstChars) {
     entries.push({
       code: char,
-      label: `Countries starting with ${char} (${countries.length} entries)`,
+      label: formatTemplate(template, { char, count: countries.length }),
       metadata: { countryCount: countries.length, table: 'C1' },
     });
   }
@@ -305,10 +316,12 @@ export function getA2Table(tables: TtaaiiTables, context: TtaaiiContext): TableD
       if ((T1 === 'S' || T1 === 'U') && A1 && isC2StationType(A1)) {
         const countryEntries = getA2EntriesFromCountries(tables, A1);
         const c2Entries = getC2A2Entries(tables);
+        const combinedTemplate = tables.localization?.countriesOrOceanAreas
+          ?? 'Countries starting with {char} or ocean areas';
         // Combine both sets of entries
         return {
           id: 'C1/C2',
-          name: `Countries starting with ${A1} or ocean areas`,
+          name: formatTemplate(combinedTemplate, { char: A1 }),
           entries: [...countryEntries, ...c2Entries],
         };
       }
@@ -316,9 +329,11 @@ export function getA2Table(tables: TtaaiiTables, context: TtaaiiContext): TableD
       if (!A1) {
         return { id: 'C1', name: tables.C1.name, entries: tables.C1.entries };
       }
+      const template = tables.localization?.countriesStartingWith
+        ?? 'Countries starting with {char} ({count} entries)';
       return {
         id: 'C1',
-        name: `Countries starting with ${A1}`,
+        name: formatTemplate(template, { char: A1, count: getA2EntriesFromCountries(tables, A1).length }),
         entries: getA2EntriesFromCountries(tables, A1),
       };
     case 'C3':
