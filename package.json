@@ -12,15 +12,17 @@
       "import": "./dist/ttaaii-provider.es.js",
       "require": "./dist/ttaaii-provider.cjs.js"
     },
-    "./tables.en.json": "./dist/tables.en.json",
-    "./tables.fr.json": "./dist/tables.fr.json"
+    "./tables.en.json": "./tables.en.json",
+    "./tables.fr.json": "./tables.fr.json"
   },
   "files": [
-    "dist"
+    "dist",
+    "tables.en.json",
+    "tables.fr.json"
   ],
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "tsc && vite build && cp dist/tables.*.json .",
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",

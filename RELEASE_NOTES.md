@@ -2,6 +2,13 @@
 
 ## 1.0.8
 
+### Improvements
+
+- **Cleaner CDN URLs for table files**:
+  - Tables are now published at package root: `@softwarity/ttaaii-provider@x.x.x/tables.{lang}.json`
+  - No longer requires `/dist/` in the path
+  - Both jsDelivr and unpkg CDNs supported
+
 ---
 
 ## 1.0.7

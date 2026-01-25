@@ -53,7 +53,7 @@ export class TtaaiiProvider {
   private tables: TtaaiiTables;
 
   constructor(tables?: TtaaiiTables) {
-    this.tables = tables || (defaultTables as TtaaiiTables);
+    this.tables = tables || (defaultTables as unknown as TtaaiiTables);
   }
 
   /**

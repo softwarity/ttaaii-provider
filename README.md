@@ -181,7 +181,8 @@ The library provides pre-built tables in English and French, available via CDN:
 
 ```typescript
 // Using dynamic import (recommended for lazy loading)
-const tables = await fetch('https://cdn.jsdelivr.net/npm/@softwarity/ttaaii-provider/dist/tables.fr.json')
+// Replace @x.x.x with the version you want (e.g., @1.0.8)
+const tables = await fetch('https://cdn.jsdelivr.net/npm/@softwarity/ttaaii-provider@1.0.8/tables.fr.json')
   .then(r => r.json());
 
 const provider = new TtaaiiProvider(tables);
@@ -191,9 +192,11 @@ Available table files:
 - `tables.en.json` - English labels
 - `tables.fr.json` - French labels
 
-CDN URLs:
-- jsDelivr: `https://cdn.jsdelivr.net/npm/@softwarity/ttaaii-provider/dist/tables.{lang}.json`
-- unpkg: `https://unpkg.com/@softwarity/ttaaii-provider/dist/tables.{lang}.json`
+CDN URLs (replace `@x.x.x` with the desired version):
+- jsDelivr: `https://cdn.jsdelivr.net/npm/@softwarity/ttaaii-provider@x.x.x/tables.{lang}.json`
+- unpkg: `https://unpkg.com/@softwarity/ttaaii-provider@x.x.x/tables.{lang}.json`
+
+> **Note**: Without a version (e.g., `@softwarity/ttaaii-provider/tables.fr.json`), the CDN will serve the latest version. For production, always pin to a specific version to ensure compatibility.
 
 ### Bundled Import (static)
 
