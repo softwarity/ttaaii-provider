@@ -24,7 +24,6 @@
           },
           "configurations": {
             "production": {
-              "baseHref": "/ttaaii-provider/",
               "budgets": [
                 {
                   "type": "initial",
