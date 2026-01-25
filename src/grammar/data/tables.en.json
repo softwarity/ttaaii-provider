@@ -527,6 +527,25 @@
       { "code": "XD", "label": "Polar belt", "metadata": { "type": "area", "continent": "AREA" } }
     ]
   },
+  "C2": {
+    "id": "C2",
+    "name": "Geographical designators for ships' weather reports and oceanographic data",
+    "A1": [
+      { "code": "W", "label": "Ocean weather stations" },
+      { "code": "V", "label": "Mobile ships and other marine stations" },
+      { "code": "F", "label": "Floats (for T1T2=SO)" }
+    ],
+    "A2": [
+      { "code": "A", "label": "Area 30°N-60°S, 35°W-70°E" },
+      { "code": "B", "label": "Area 90°N-05°N, 70°E-180°E" },
+      { "code": "C", "label": "Area 05°N-60°S, 120°W-35°W" },
+      { "code": "D", "label": "Area 90°N-05°N, 180°W-35°W" },
+      { "code": "E", "label": "Area 05°N-60°S, 70°E-120°W" },
+      { "code": "F", "label": "Area 90°N-30°N, 35°W-70°E" },
+      { "code": "J", "label": "Area south of 60°S" },
+      { "code": "X", "label": "More than one area" }
+    ]
+  },
   "C3": {
     "id": "C3",
     "name": "Geographical/area designators for GRID (A1 quadrant)",

@@ -67,11 +67,28 @@ interactive-code.hidden {
     line-height: 1.3;
   }
 
+  .mat-mdc-option {
+    position: relative;
+  }
+
   .option-content {
     display: flex;
     flex-direction: column;
     gap: 2px;
     width: 100%;
+  }
+
+  .option-table {
+    position: absolute;
+    top: 4px;
+    right: 8px;
+    font-size: 0.6rem;
+    font-family: 'Courier New', Consolas, monospace;
+    color: var(--text-muted);
+    opacity: 0.5;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    pointer-events: none;
   }
 
   .option-main {

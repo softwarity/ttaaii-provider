@@ -184,16 +184,44 @@ describe('resolver', () => {
   });
 
   describe('getA1Table()', () => {
-    it('should return C1_A1 (first chars of countries) for simple data types', () => {
+    it('should return C1 (first chars of countries) for simple data types', () => {
       const table = getA1Table(tables, { T1: 'A', T2: 'C' });
 
       expect(table).not.toBeNull();
-      expect(table!.id).toBe('C1_A1');
+      expect(table!.id).toBe('C1');
       // Should return unique first characters of country codes (A-Z that have countries)
       expect(table!.entries.length).toBeGreaterThan(15);
       expect(table!.entries.length).toBeLessThan(27); // At most 26 letters
       // Each entry should be a single character
       expect(table!.entries.every(e => e.code.length === 1)).toBe(true);
+    });
+
+    it('should return C1/C2 combined entries for T1=S (surface obs)', () => {
+      const table = getA1Table(tables, { T1: 'S', T2: 'A' });
+
+      expect(table).not.toBeNull();
+      expect(table!.id).toBe('C1/C2');
+
+      const codes = table!.entries.map(e => e.code);
+      // Should include C2 station types (W, V, F)
+      expect(codes).toContain('W'); // Ocean weather stations
+      expect(codes).toContain('V'); // Mobile ships
+      expect(codes).toContain('F'); // Floats
+      // Should also include country first chars (excluding W, V, F which are C2)
+      expect(codes).toContain('A'); // Countries starting with A
+      expect(codes).toContain('U'); // Countries starting with U
+    });
+
+    it('should return C1/C2 combined entries for T1=U (upper air)', () => {
+      const table = getA1Table(tables, { T1: 'U', T2: 'A' });
+
+      expect(table).not.toBeNull();
+      expect(table!.id).toBe('C1/C2');
+
+      const codes = table!.entries.map(e => e.code);
+      // Should include C2 station types
+      expect(codes).toContain('W');
+      expect(codes).toContain('V');
     });
 
     it('should return C3 for GRID data', () => {
@@ -230,11 +258,11 @@ describe('resolver', () => {
   });
 
   describe('getA2Table()', () => {
-    it('should return C1_A2 (countries filtered by A1) for simple data types', () => {
+    it('should return C1 (countries filtered by A1) for simple data types', () => {
       const table = getA2Table(tables, { T1: 'A', T2: 'C', A1: 'F' });
 
       expect(table).not.toBeNull();
-      expect(table!.id).toBe('C1_A2');
+      expect(table!.id).toBe('C1');
       // Should return countries starting with F
       expect(table!.entries.length).toBeGreaterThan(0);
       // Each entry code should be a single character (second char of country code)
@@ -271,6 +299,31 @@ describe('resolver', () => {
 
       expect(table).not.toBeNull();
       expect(table!.id).toBe('C3');
+    });
+
+    it('should return C2 ocean areas when A1 is a C2 station type (W, V, F)', () => {
+      // For T1=S with A1=W (ocean weather stations)
+      const table = getA2Table(tables, { T1: 'S', T2: 'A', A1: 'W' });
+
+      expect(table).not.toBeNull();
+      expect(table!.id).toBe('C2');
+
+      const codes = table!.entries.map(e => e.code);
+      expect(codes).toContain('A'); // Ocean area A
+      expect(codes).toContain('X'); // More than one area
+    });
+
+    it('should return C1 countries when A1 is not a C2 station type for T1=S', () => {
+      // For T1=S with A1=A (not a C2 station type, starts country codes like AG, AU)
+      const table = getA2Table(tables, { T1: 'S', T2: 'A', A1: 'A' });
+
+      expect(table).not.toBeNull();
+      expect(table!.id).toBe('C1');
+
+      // Should return countries starting with A
+      const codes = table!.entries.map(e => e.code);
+      expect(codes).toContain('G'); // AG = Argentina
+      expect(codes).toContain('U'); // AU = Australia
     });
   });
 

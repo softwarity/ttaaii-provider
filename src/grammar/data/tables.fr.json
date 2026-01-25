@@ -622,6 +622,25 @@
       { "code": "XX", "label": "International / Tous", "metadata": { "type": "area", "continent": "AREA" } }
     ]
   },
+  "C2": {
+    "id": "C2",
+    "name": "Indicateurs géographiques pour bulletins de rapports météo de navires et données océanographiques",
+    "A1": [
+      { "code": "W", "label": "Stations météo océaniques" },
+      { "code": "V", "label": "Navires mobiles et autres stations marines" },
+      { "code": "F", "label": "Flotteurs (pour T1T2=SO)" }
+    ],
+    "A2": [
+      { "code": "A", "label": "Zone 30°N-60°S, 35°W-70°E" },
+      { "code": "B", "label": "Zone 90°N-05°N, 70°E-180°E" },
+      { "code": "C", "label": "Zone 05°N-60°S, 120°W-35°W" },
+      { "code": "D", "label": "Zone 90°N-05°N, 180°W-35°W" },
+      { "code": "E", "label": "Zone 05°N-60°S, 70°E-120°W" },
+      { "code": "F", "label": "Zone 90°N-30°N, 35°W-70°E" },
+      { "code": "J", "label": "Zone au sud de 60°S" },
+      { "code": "X", "label": "Plus d'une zone" }
+    ]
+  },
   "C3": {
     "id": "C3",
     "name": "Indicateur de la zone géographique A1 (pour GRID)",

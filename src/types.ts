@@ -11,6 +11,8 @@ export interface CompletionItem {
   code: string;
   /** Human-readable description */
   label: string;
+  /** WMO-386 table this entry comes from (e.g., "A", "B1", "C1", "C2") */
+  table: string;
   /** Optional code form reference (e.g., "FM 44 (ICEAN)", "[TEXT]") */
   codeForm?: string;
   /** Optional GTS priority level */
@@ -101,38 +103,37 @@ export interface ValidationError {
 }
 
 /**
+ * Decoded field with table reference
+ */
+export interface DecodedField {
+  /** The code value */
+  code: string;
+  /** Human-readable label */
+  label: string;
+  /** WMO-386 table this value comes from */
+  table: string;
+  /** Optional code form reference */
+  codeForm?: string;
+  /** Optional priority */
+  priority?: number;
+}
+
+/**
  * Decoded TTAAII information
  */
 export interface DecodedTtaaii {
   /** Original input */
   input: string;
   /** Data type (T1 decoded) */
-  dataType?: {
-    code: string;
-    label: string;
-    priority?: number;
-  };
+  dataType?: DecodedField;
   /** Data subtype (T2 decoded) */
-  dataSubtype?: {
-    code: string;
-    label: string;
-    codeForm?: string;
-  };
+  dataSubtype?: DecodedField;
   /** Area/type A1 (decoded) */
-  areaOrType1?: {
-    code: string;
-    label: string;
-  };
+  areaOrType1?: DecodedField;
   /** Area/time A2 (decoded) */
-  areaOrTime2?: {
-    code: string;
-    label: string;
-  };
+  areaOrTime2?: DecodedField;
   /** Level indicator (ii decoded) */
-  level?: {
-    code: string;
-    label: string;
-  };
+  level?: DecodedField;
 }
 
 /**
@@ -203,6 +204,13 @@ export interface TtaaiiTables {
   B7: { id: string; name: string; entries: TableEntry[] };
   /** Table C1: Countries */
   C1: { id: string; name: string; entries: TableEntry[] };
+  /** Table C2: Ships and oceanographic (A1 = station type, A2 = ocean area) */
+  C2: {
+    id: string;
+    name: string;
+    A1: TableEntry[];  // W, V, F (station types)
+    A2: TableEntry[];  // A-X (ocean areas)
+  };
   /** Table C3: GRID areas */
   C3: { id: string; name: string; entries: TableEntry[] };
   /** Table C4: GRID reference time */

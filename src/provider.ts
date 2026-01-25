@@ -22,6 +22,7 @@ import {
   getIiTable,
   usesCountryTable,
   getCountryEntry,
+  isC2StationType,
 } from './grammar/resolver';
 
 // Default tables (English)
@@ -71,7 +72,7 @@ export class TtaaiiProvider {
     if (table) {
       // Convert table entries to completion items
       for (const entry of table.entries) {
-        items.push(this.entryToCompletionItem(entry));
+        items.push(this.entryToCompletionItem(entry, table.id));
       }
 
       // Handle grouping if requested
@@ -145,6 +146,7 @@ export class TtaaiiProvider {
         result.dataType = {
           code: t1Entry.code,
           label: t1Entry.label,
+          table: t1Table.id,
           priority: t1Entry.priority,
         };
       }
@@ -159,6 +161,7 @@ export class TtaaiiProvider {
           result.dataSubtype = {
             code: t2Entry.code,
             label: t2Entry.label,
+            table: t2Table.id,
             codeForm: t2Entry.codeForm,
           };
         }
@@ -168,24 +171,50 @@ export class TtaaiiProvider {
     // Decode A1A2
     if (context.T1 && context.T2 && context.A1) {
       if (usesCountryTable(context.T1)) {
-        // For country tables (C1), A1A2 form a 2-char country code
-        if (context.A2) {
-          const countryCode = context.A1 + context.A2;
-          const countryEntry = getCountryEntry(this.tables, countryCode);
-          if (countryEntry) {
-            // Store country info in areaOrType1 (combined A1A2)
+        // Check if A1 is a C2 station type (W, V, F) for ships/oceanographic
+        if (isC2StationType(context.A1)) {
+          // A1 is from C2 (station type)
+          const c2A1Entry = this.tables.C2.A1.find(e => e.code === context.A1);
+          if (c2A1Entry) {
             result.areaOrType1 = {
-              code: countryCode,
-              label: countryEntry.label,
+              code: c2A1Entry.code,
+              label: c2A1Entry.label,
+              table: 'C2',
             };
-            // areaOrTime2 not used for country codes
+          }
+          // A2 is from C2 (ocean area)
+          if (context.A2) {
+            const c2A2Entry = this.tables.C2.A2.find(e => e.code === context.A2);
+            if (c2A2Entry) {
+              result.areaOrTime2 = {
+                code: c2A2Entry.code,
+                label: c2A2Entry.label,
+                table: 'C2',
+              };
+            }
           }
         } else {
-          // Only A1 available, show partial info
-          result.areaOrType1 = {
-            code: context.A1,
-            label: `Countries starting with ${context.A1}`,
-          };
+          // For country tables (C1), A1A2 form a 2-char country code
+          if (context.A2) {
+            const countryCode = context.A1 + context.A2;
+            const countryEntry = getCountryEntry(this.tables, countryCode);
+            if (countryEntry) {
+              // Store country info in areaOrType1 (combined A1A2)
+              result.areaOrType1 = {
+                code: countryCode,
+                label: countryEntry.label,
+                table: 'C1',
+              };
+              // areaOrTime2 not used for country codes
+            }
+          } else {
+            // Only A1 available, show partial info
+            result.areaOrType1 = {
+              code: context.A1,
+              label: `Countries starting with ${context.A1}`,
+              table: 'C1',
+            };
+          }
         }
       } else {
         // For non-country tables, A1 and A2 are separate single-char codes
@@ -196,6 +225,7 @@ export class TtaaiiProvider {
             result.areaOrType1 = {
               code: a1Entry.code,
               label: a1Entry.label,
+              table: a1Table.id,
             };
           }
         }
@@ -209,6 +239,7 @@ export class TtaaiiProvider {
               result.areaOrTime2 = {
                 code: a2Entry.code,
                 label: a2Entry.label,
+                table: a2Table.id,
               };
             }
           }
@@ -225,6 +256,7 @@ export class TtaaiiProvider {
           result.level = {
             code: iiEntry.code,
             label: iiEntry.label,
+            table: iiTable.id,
           };
         }
       }
@@ -268,7 +300,7 @@ export class TtaaiiProvider {
       return { items: [] };
     }
 
-    const items = table.entries.map(e => this.entryToCompletionItem(e));
+    const items = table.entries.map(e => this.entryToCompletionItem(e, table.id));
 
     let groups: CompletionGroup[] | undefined;
     if (options.groupBy) {
@@ -280,11 +312,16 @@ export class TtaaiiProvider {
 
   /**
    * Convert a table entry to a completion item
+   * @param entry - The table entry
+   * @param tableId - The WMO-386 table id this entry comes from
    */
-  private entryToCompletionItem(entry: TableEntry): CompletionItem {
+  private entryToCompletionItem(entry: TableEntry, tableId: string): CompletionItem {
+    // Use metadata.table if available (for C1/C2 combined entries), otherwise use tableId
+    const table = (entry.metadata?.table as string) || tableId;
     return {
       code: entry.code,
       label: entry.label,
+      table,
       codeForm: entry.codeForm,
       priority: entry.priority,
       metadata: entry.metadata,

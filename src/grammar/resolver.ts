@@ -1,5 +1,15 @@
 import type { TableDefinition, TableEntry, TtaaiiContext, TtaaiiField, TtaaiiTables } from '../types';
 
+// C2 A1 codes (station types for ships/oceanographic)
+const C2_A1_CODES = ['W', 'V', 'F'];
+
+/**
+ * Check if A1 code is from C2 table (ships/oceanographic)
+ */
+export function isC2StationType(A1: string | undefined): boolean {
+  return A1 !== undefined && C2_A1_CODES.includes(A1);
+}
+
 // Mappings: which table to use based on T1
 const T1_TO_T2_TABLE: Record<string, string> = {
   'A': 'B1', 'C': 'B1', 'F': 'B1', 'N': 'B1', 'S': 'B1', 'T': 'B1', 'U': 'B1', 'W': 'B1',
@@ -126,6 +136,7 @@ export function getT2Table(tables: TtaaiiTables, context: TtaaiiContext): TableD
 
 /**
  * Get unique first characters from country codes for A1 completion
+ * Excludes characters that are C2 station types (W, V, F)
  */
 function getA1EntriesFromCountries(tables: TtaaiiTables): TableEntry[] {
   const firstChars = new Map<string, string[]>();
@@ -133,6 +144,8 @@ function getA1EntriesFromCountries(tables: TtaaiiTables): TableEntry[] {
   for (const entry of tables.C1.entries) {
     if (entry.code.length === 2) {
       const firstChar = entry.code[0];
+      // Skip if this char is a C2 station type
+      if (C2_A1_CODES.includes(firstChar)) continue;
       if (!firstChars.has(firstChar)) {
         firstChars.set(firstChar, []);
       }
@@ -145,11 +158,30 @@ function getA1EntriesFromCountries(tables: TtaaiiTables): TableEntry[] {
     entries.push({
       code: char,
       label: `Countries starting with ${char} (${countries.length} entries)`,
-      metadata: { countryCount: countries.length },
+      metadata: { countryCount: countries.length, table: 'C1' },
     });
   }
 
   return entries.sort((a, b) => a.code.localeCompare(b.code));
+}
+
+/**
+ * Get C2 A1 entries (station types) with table metadata
+ */
+function getC2A1Entries(tables: TtaaiiTables): TableEntry[] {
+  return tables.C2.A1.map(entry => ({
+    ...entry,
+    metadata: { ...entry.metadata, table: 'C2' },
+  }));
+}
+
+/**
+ * Get combined A1 entries from C1 (countries) and C2 (stations) for T1=S or T1=U
+ */
+function getCombinedA1Entries(tables: TtaaiiTables): TableEntry[] {
+  const countryEntries = getA1EntriesFromCountries(tables);
+  const stationEntries = getC2A1Entries(tables);
+  return [...countryEntries, ...stationEntries].sort((a, b) => a.code.localeCompare(b.code));
 }
 
 /**
@@ -166,12 +198,23 @@ function getA2EntriesFromCountries(tables: TtaaiiTables, A1: string): TableEntry
         metadata: {
           ...entry.metadata,
           fullCode: entry.code, // Keep full code for reference
+          table: 'C1',
         },
       });
     }
   }
 
   return entries.sort((a, b) => a.code.localeCompare(b.code));
+}
+
+/**
+ * Get C2 A2 entries (ocean areas) with table metadata
+ */
+function getC2A2Entries(tables: TtaaiiTables): TableEntry[] {
+  return tables.C2.A2.map(entry => ({
+    ...entry,
+    metadata: { ...entry.metadata, table: 'C2' },
+  }));
 }
 
 /**
@@ -199,9 +242,17 @@ export function getA1Table(tables: TtaaiiTables, context: TtaaiiContext): TableD
 
   switch (tableId) {
     case 'C1':
-      // Return unique first characters of country codes
+      // For T1=S or T1=U, A1 can be from C1 (countries) OR C2 (ships/oceanographic)
+      if (T1 === 'S' || T1 === 'U') {
+        return {
+          id: 'C1/C2',
+          name: 'Geographical designator A1 (countries or marine stations)',
+          entries: getCombinedA1Entries(tables),
+        };
+      }
+      // For other T1 values, only C1 (countries)
       return {
-        id: 'C1_A1',
+        id: 'C1',
         name: 'Geographical designator A1 (first character of country)',
         entries: getA1EntriesFromCountries(tables),
       };
@@ -234,12 +285,21 @@ export function getA2Table(tables: TtaaiiTables, context: TtaaiiContext): TableD
 
   switch (tableId) {
     case 'C1':
-      // Filter countries by A1 (first character)
+      // For T1=S or T1=U, check if A1 is a C2 station type
+      if ((T1 === 'S' || T1 === 'U') && isC2StationType(A1)) {
+        // A1 is W, V, or F -> use C2 ocean areas
+        return {
+          id: 'C2',
+          name: tables.C2.name,
+          entries: getC2A2Entries(tables),
+        };
+      }
+      // Otherwise, filter countries by A1 (first character)
       if (!A1) {
         return { id: 'C1', name: tables.C1.name, entries: tables.C1.entries };
       }
       return {
-        id: 'C1_A2',
+        id: 'C1',
         name: `Countries starting with ${A1}`,
         entries: getA2EntriesFromCountries(tables, A1),
       };
