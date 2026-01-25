@@ -218,8 +218,13 @@ interactive-code.hidden {
     color: var(--text-primary);
   }
 
-  pre {
+  .json-output {
     max-height: 300px;
+    overflow: auto;
+
+    code {
+      white-space: pre;
+    }
   }
 }
 

@@ -28,6 +28,10 @@ import {
   DecodedTtaaii,
 } from '../../../../src';
 
+// PrismJS for syntax highlighting
+import Prism from 'prismjs';
+import 'prismjs/components/prism-json';
+
 // Register interactive-code custom elements
 import { registerInteractiveCode } from '@softwarity/interactive-code';
 registerInteractiveCode();
@@ -96,7 +100,7 @@ export class PlaygroundComponent implements AfterViewInit, OnDestroy {
     return this.provider.decode(this.committedInput());
   });
 
-  // JSON string for display
+  // JSON string for display (plain)
   protected decodedJson = computed(() => {
     const d = this.decoded();
     // Only include non-empty fields
@@ -107,6 +111,12 @@ export class PlaygroundComponent implements AfterViewInit, OnDestroy {
     if (d.areaOrTime2) clean['areaOrTime2'] = d.areaOrTime2;
     if (d.level) clean['level'] = d.level;
     return JSON.stringify(clean, null, 2);
+  });
+
+  // Colorized JSON for display using PrismJS
+  protected decodedJsonHtml = computed(() => {
+    const json = this.decodedJson();
+    return Prism.highlight(json, Prism.languages['json'], 'json');
   });
 
   // Filtered items for autocomplete (filtered by filterText)
@@ -164,7 +174,7 @@ export class PlaygroundComponent implements AfterViewInit, OnDestroy {
 
   onInputChange(value: string): void {
     const upper = value.toUpperCase();
-    const currentCommitted = this.committedLength();
+    let currentCommitted = this.committedLength();
 
     // If user deleted characters beyond committed, adjust committed length
     if (upper.length < currentCommitted) {
@@ -182,32 +192,43 @@ export class PlaygroundComponent implements AfterViewInit, OnDestroy {
 
     this.inputValue.set(upper);
 
-    // Check if filter results in exactly one match - auto-select it
-    const filterText = upper.slice(currentCommitted).toUpperCase();
-    if (filterText) {
-      const items = this.completionResult().items;
-      const matches = items.filter((item) =>
-        item.code.toUpperCase().startsWith(filterText)
-      );
+    // Try to commit as many valid characters as possible
+    while (currentCommitted < upper.length && currentCommitted < 6) {
+      const partialInput = upper.slice(0, currentCommitted);
+      const result = this.provider.complete(partialInput);
+      const field = result.field;
 
-      if (matches.length === 1) {
-        // Auto-select the single match
-        const match = matches[0];
-        const committed = upper.slice(0, currentCommitted);
-        const newValue = committed + match.code;
-        this.inputValue.set(newValue);
-        this.committedLength.set(newValue.length);
+      if (field === 'ii') {
+        // ii needs 2 characters
+        const iiChars = upper.slice(currentCommitted, currentCommitted + 2);
+        if (iiChars.length < 2) break; // Not enough chars for ii yet
 
-        // Open panel for next field if not complete
-        if (newValue.length < 6) {
-          setTimeout(() => this.autoTrigger()?.openPanel());
+        const match = result.items.find(item => item.code === iiChars);
+        if (match) {
+          currentCommitted += 2;
+        } else {
+          break; // Invalid ii, keep as filter
         }
-        return;
+      } else {
+        // Single character fields (T1, T2, A1, A2)
+        const char = upper[currentCommitted];
+        const match = result.items.find(item => item.code === char);
+        if (match) {
+          currentCommitted++;
+        } else {
+          break; // Invalid char, keep as filter
+        }
       }
     }
 
-    // Open panel automatically after input change
-    setTimeout(() => this.autoTrigger()?.openPanel());
+    this.committedLength.set(currentCommitted);
+
+    // Open panel for next field if not complete, close if complete
+    if (currentCommitted >= 6) {
+      setTimeout(() => this.autoTrigger()?.closePanel());
+    } else if (upper.length < 6) {
+      setTimeout(() => this.autoTrigger()?.openPanel());
+    }
   }
 
   selectOption(item: CompletionItem): void {

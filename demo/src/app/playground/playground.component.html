@@ -36,6 +36,9 @@
         placeholder="SAFR01"
         maxlength="20"
         autocomplete="off"
+        spellcheck="false"
+        autocorrect="off"
+        autocapitalize="off"
       />
       @if (inputValue()) {
         <button matSuffix mat-icon-button (click)="clearInput()" matTooltip="Clear">
@@ -164,9 +167,7 @@
   @if (committedInput()) {
     <div class="decoded-section">
       <h3>Decoded Output</h3>
-      <interactive-code language="json">
-        <textarea>{{ decodedJson() }}</textarea>
-      </interactive-code>
+      <pre class="json-output"><code [innerHTML]="decodedJsonHtml()"></code></pre>
     </div>
   }
 

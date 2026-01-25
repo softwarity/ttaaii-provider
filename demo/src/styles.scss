@@ -1,5 +1,8 @@
 @use '@angular/material' as mat;
 
+// PrismJS dark theme
+@import 'prismjs/themes/prism-tomorrow.css';
+
 // Material 3 Theme
 html {
   color-scheme: dark;
