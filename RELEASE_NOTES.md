@@ -6,6 +6,13 @@
 
 ## 1.0.8
 
+### Features
+
+- **VERSION export**: Library version is now accessible via API
+  - `import { VERSION } from '@softwarity/ttaaii-provider'`
+  - Version is injected at build time from package.json
+  - Demo playground displays current version
+
 ### Improvements
 
 - **Cleaner CDN URLs for table files**:

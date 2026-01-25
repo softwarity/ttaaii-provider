@@ -1,8 +1,14 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
-import { copyFileSync, mkdirSync } from 'fs';
+import { copyFileSync, mkdirSync, readFileSync } from 'fs';
+
+// Read version from package.json
+const pkg = JSON.parse(readFileSync(resolve(__dirname, 'package.json'), 'utf-8'));
 
 export default defineConfig({
+  define: {
+    __VERSION__: JSON.stringify(pkg.version)
+  },
   build: {
     lib: {
       entry: resolve(__dirname, 'src/index.ts'),

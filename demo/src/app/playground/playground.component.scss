@@ -11,6 +11,26 @@ interactive-code.hidden {
   margin-bottom: 32px;
   padding-bottom: 48px;
 
+  > .header {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 16px;
+
+    h2 {
+      margin: 0;
+    }
+
+    .version {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+      padding: 2px 8px;
+      background: var(--surface-variant, #e0e0e0);
+      border-radius: 4px;
+    }
+  }
+
   > .section-intro {
     margin: 0 0 24px 0;
     font-size: 0.95rem;

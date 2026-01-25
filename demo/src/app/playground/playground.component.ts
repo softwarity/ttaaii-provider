@@ -28,6 +28,7 @@ import {
   CompletionGroup,
   DecodedTtaaii,
   TtaaiiTables,
+  VERSION,
 } from '../../../../src';
 import { environment } from '../../environments/environment';
 
@@ -61,6 +62,9 @@ registerInteractiveCode();
 export class PlaygroundComponent implements OnInit, AfterViewInit, OnDestroy {
   private autoTrigger = viewChild<MatAutocompleteTrigger>(MatAutocompleteTrigger);
   private codeBindingListener?: () => void;
+
+  // Library version
+  protected readonly version = VERSION;
 
   // Available tables for i18n (loaded dynamically)
   private tablesMap = signal<Record<string, TtaaiiTables>>({});
