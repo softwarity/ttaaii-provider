@@ -29,8 +29,8 @@ import {
 // Default tables (English)
 import defaultTables from './grammar/data/tables.en.json';
 
-// Continent labels for grouping
-const CONTINENT_LABELS: Record<string, string> = {
+// Default continent labels (English fallback)
+const DEFAULT_CONTINENT_LABELS: Record<string, string> = {
   EU: 'Europe',
   AF: 'Africa',
   AS: 'Asia',
@@ -359,11 +359,14 @@ export class TtaaiiProvider {
       continentMap.get(continent)!.push(item);
     }
 
+    // Get localized continent labels from tables, fallback to defaults
+    const continentLabels = this.tables.localization?.continents ?? DEFAULT_CONTINENT_LABELS;
+
     const groups: CompletionGroup[] = [];
     for (const [key, groupItems] of continentMap) {
       groups.push({
         key,
-        label: CONTINENT_LABELS[key] || key,
+        label: continentLabels[key] || DEFAULT_CONTINENT_LABELS[key] || key,
         items: groupItems,
       });
     }

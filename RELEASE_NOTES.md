@@ -6,6 +6,20 @@
 
 ## 1.0.7
 
+### Features
+
+- **Localization support for generated labels**:
+  - Added `localization` section to tables.json files
+  - `countriesStartingWith`: template for A1 country prefix labels (e.g., "Pays commençant par {char} ({count} entrées)")
+  - `countriesOrOceanAreas`: template for combined A2 labels
+  - `continents`: localized continent names for groupBy feature
+  - French and English tables now include full localization
+
+### Improvements
+
+- All generated labels (country prefixes, continents) now use localized strings from tables
+- Fallback to English defaults when localization is missing
+
 ---
 
 ## 1.0.6
