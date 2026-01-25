@@ -184,12 +184,16 @@ describe('resolver', () => {
   });
 
   describe('getA1Table()', () => {
-    it('should return C1 for simple data types', () => {
+    it('should return C1_A1 (first chars of countries) for simple data types', () => {
       const table = getA1Table(tables, { T1: 'A', T2: 'C' });
 
       expect(table).not.toBeNull();
-      expect(table!.id).toBe('C1');
-      expect(table!.entries.length).toBeGreaterThan(100); // Many countries
+      expect(table!.id).toBe('C1_A1');
+      // Should return unique first characters of country codes (A-Z that have countries)
+      expect(table!.entries.length).toBeGreaterThan(15);
+      expect(table!.entries.length).toBeLessThan(27); // At most 26 letters
+      // Each entry should be a single character
+      expect(table!.entries.every(e => e.code.length === 1)).toBe(true);
     });
 
     it('should return C3 for GRID data', () => {
@@ -226,11 +230,18 @@ describe('resolver', () => {
   });
 
   describe('getA2Table()', () => {
-    it('should return C1 for simple data types', () => {
+    it('should return C1_A2 (countries filtered by A1) for simple data types', () => {
       const table = getA2Table(tables, { T1: 'A', T2: 'C', A1: 'F' });
 
       expect(table).not.toBeNull();
-      expect(table!.id).toBe('C1');
+      expect(table!.id).toBe('C1_A2');
+      // Should return countries starting with F
+      expect(table!.entries.length).toBeGreaterThan(0);
+      // Each entry code should be a single character (second char of country code)
+      expect(table!.entries.every(e => e.code.length === 1)).toBe(true);
+      // Check that we have FR (France) -> R
+      const codes = table!.entries.map(e => e.code);
+      expect(codes).toContain('R'); // FR = France
     });
 
     it('should return C4 for GRID reference time', () => {

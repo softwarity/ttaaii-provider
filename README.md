@@ -22,7 +22,12 @@ const provider = new TtaaiiProvider();
 // Get completions for current input
 const result = provider.complete('SA');
 console.log(result.field);  // 'A1'
-console.log(result.items);  // [{ code: 'A', label: 'Afghanistan' }, ...]
+console.log(result.items);  // [{ code: 'A', label: 'Countries starting with A' }, ...]
+
+// For country codes, A1 gives first letter options, A2 gives countries
+const a2Result = provider.complete('SAF');
+console.log(a2Result.field);  // 'A2'
+console.log(a2Result.items);  // [{ code: 'A', label: 'Faroe Islands' }, { code: 'R', label: 'France' }, ...]
 
 // Decode a TTAAII code
 const decoded = provider.decode('SAFR01');
@@ -132,18 +137,22 @@ function selectItem(code: string) {
 
 ## Grouped Completions
 
-Group countries by continent for better UX:
+Group countries by continent for better UX (at A2 position where country names appear):
 
 ```typescript
-// Flat list (default)
-const result = provider.complete('SA');
-// result.items = [{ code: 'A', label: 'Afghanistan' }, ...]
+// At A1 position: first characters of country codes
+const a1Result = provider.complete('SA');
+// a1Result.items = [{ code: 'A', label: 'Countries starting with A' }, ...]
 
-// Grouped by continent
-const result = provider.complete('SA', { groupBy: 'continent' });
-// result.groups = [
-//   { key: 'EU', label: 'Europe', items: [...] },
-//   { key: 'AF', label: 'Africa', items: [...] },
+// At A2 position: full country names (filtered by A1)
+const a2Result = provider.complete('SAF');
+// a2Result.items = [{ code: 'A', label: 'Faroe Islands' }, { code: 'R', label: 'France' }, ...]
+
+// Grouped by continent (useful at A2 position)
+const grouped = provider.complete('SAF', { groupBy: 'continent' });
+// grouped.groups = [
+//   { key: 'EU', label: 'Europe', items: [{ code: 'R', label: 'France' }, ...] },
+//   { key: 'OC', label: 'Oceania', items: [{ code: 'J', label: 'Fiji' }, ...] },
 //   ...
 // ]
 ```
@@ -217,9 +226,11 @@ Decode a TTAAII string into human-readable format.
 Returns:
 - `dataType` - T1 decoded (code, label, priority)
 - `dataSubtype` - T2 decoded (code, label, codeForm)
-- `areaOrType1` - A1 decoded
-- `areaOrTime2` - A2 decoded
+- `areaOrType1` - A1 decoded (for country codes, contains combined A1A2 country info)
+- `areaOrTime2` - A2 decoded (for non-country tables only, e.g., reference time)
 - `level` - ii decoded
+
+**Note on Country Codes**: For most T1 values (A, C, E, F, L, N, S, U, V, W), A1A2 forms a 2-character ISO country code (e.g., "FR" for France). In this case, `areaOrType1` contains the combined country code and name. For other T1 values (BUFR, GRID, etc.), A1 and A2 are decoded separately.
 
 ##### `getFieldSuggestions(field, context, options): { items, groups }`
 
@@ -230,11 +241,16 @@ Get suggestions for a specific field independently.
 ```
 T1 T2 A1 A2 ii
 │  │  │  │  └── Level/sequence indicator (2 digits)
-│  │  │  └───── Area or time indicator
-│  │  └──────── Area or type indicator
+│  │  └──┴───── A1A2: Country code (FR, US, etc.) OR
+│  │            A1: Area/type, A2: Time reference (for BUFR, GRID)
 │  └─────────── Data subtype (depends on T1)
 └────────────── Data type (A-Z)
 ```
+
+**A1A2 Interpretation**:
+- **Country codes** (T1 = A, C, E, F, L, N, S, U, V, W): A1A2 forms a 2-character ISO country/territory code
+- **BUFR/CREX** (T1 = I, J, K): A1 = data type, A2 = geographical area
+- **GRID/GRIB** (T1 = D, G, H, O, P, Q, T, Y): A1 = geographical area, A2 = reference time
 
 ### Common T1 Values
 

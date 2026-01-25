@@ -116,8 +116,12 @@
       <div class="char-box" [class.active]="position() === 2" [class.filled]="committedInput().length > 2" [class.filtering]="position() === 2 && filterText()">
         <span class="char-label">A1</span>
         <span class="char-value">{{ committedInput()[2] || (position() === 2 && filterText() ? filterText() : '_') }}</span>
-        @if (decoded().areaOrType1) {
+        @if (decoded().areaOrType1 && decoded().areaOrType1!.code.length === 1) {
+          <!-- Single char A1 (partial country or non-country table) -->
           <span class="char-meaning">{{ decoded().areaOrType1!.label }}</span>
+        } @else if (decoded().areaOrType1 && decoded().areaOrType1!.code.length === 2) {
+          <!-- Combined country code - show code in A1 -->
+          <span class="char-meaning">{{ decoded().areaOrType1!.code }}</span>
         } @else if (position() === 2 && filterText()) {
           <span class="char-filter">filtering...</span>
         }
@@ -127,7 +131,11 @@
         <span class="char-label">A2</span>
         <span class="char-value">{{ committedInput()[3] || (position() === 3 && filterText() ? filterText() : '_') }}</span>
         @if (decoded().areaOrTime2) {
+          <!-- Separate A2 value (BUFR, GRID, etc.) -->
           <span class="char-meaning">{{ decoded().areaOrTime2!.label }}</span>
+        } @else if (decoded().areaOrType1 && decoded().areaOrType1!.code.length === 2) {
+          <!-- Combined country code - show country name in A2 -->
+          <span class="char-meaning">{{ decoded().areaOrType1!.label }}</span>
         } @else if (position() === 3 && filterText()) {
           <span class="char-filter">filtering...</span>
         }

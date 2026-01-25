@@ -20,6 +20,8 @@ import {
   getA1Table,
   getA2Table,
   getIiTable,
+  usesCountryTable,
+  getCountryEntry,
 } from './grammar/resolver';
 
 // Default tables
@@ -163,42 +165,53 @@ export class TtaaiiProvider {
       }
     }
 
-    // Decode A1
+    // Decode A1A2
     if (context.T1 && context.T2 && context.A1) {
-      const a1Table = getA1Table(this.tables, context);
-      if (a1Table) {
-        // For C1 table, A1 might be first character of 2-char code
-        const a1Entry = a1Table.entries.find(e =>
-          e.code === context.A1 ||
-          (e.code.length === 2 && e.code[0] === context.A1)
-        );
-        if (a1Entry) {
+      if (usesCountryTable(context.T1)) {
+        // For country tables (C1), A1A2 form a 2-char country code
+        if (context.A2) {
+          const countryCode = context.A1 + context.A2;
+          const countryEntry = getCountryEntry(this.tables, countryCode);
+          if (countryEntry) {
+            // Store country info in areaOrType1 (combined A1A2)
+            result.areaOrType1 = {
+              code: countryCode,
+              label: countryEntry.label,
+            };
+            // areaOrTime2 not used for country codes
+          }
+        } else {
+          // Only A1 available, show partial info
           result.areaOrType1 = {
-            code: a1Entry.code,
-            label: a1Entry.label,
+            code: context.A1,
+            label: `Countries starting with ${context.A1}`,
           };
         }
-      }
-    }
-
-    // Decode A2
-    if (context.T1 && context.T2 && context.A1 && context.A2) {
-      const a2Table = getA2Table(this.tables, context);
-      if (a2Table) {
-        // For C1 table (countries), combine A1A2
-        const combinedCode = context.A1 + context.A2;
-        let a2Entry = a2Table.entries.find(e => e.code === combinedCode);
-
-        // If not found as combined, try single character
-        if (!a2Entry) {
-          a2Entry = a2Table.entries.find(e => e.code === context.A2);
+      } else {
+        // For non-country tables, A1 and A2 are separate single-char codes
+        const a1Table = getA1Table(this.tables, context);
+        if (a1Table) {
+          const a1Entry = a1Table.entries.find(e => e.code === context.A1);
+          if (a1Entry) {
+            result.areaOrType1 = {
+              code: a1Entry.code,
+              label: a1Entry.label,
+            };
+          }
         }
 
-        if (a2Entry) {
-          result.areaOrTime2 = {
-            code: a2Entry.code,
-            label: a2Entry.label,
-          };
+        // Decode A2 separately for non-country tables
+        if (context.A2) {
+          const a2Table = getA2Table(this.tables, context);
+          if (a2Table) {
+            const a2Entry = a2Table.entries.find(e => e.code === context.A2);
+            if (a2Entry) {
+              result.areaOrTime2 = {
+                code: a2Entry.code,
+                label: a2Entry.label,
+              };
+            }
+          }
         }
       }
     }

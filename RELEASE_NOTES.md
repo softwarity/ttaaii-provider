@@ -2,6 +2,23 @@
 
 ## 1.0.2
 
+### Bug Fixes
+
+- **Fixed A1A2 country code handling**: Country codes (Table C1) are now properly treated as 2-character combined codes
+  - A1 position returns first character options (e.g., "F" for countries starting with F)
+  - A2 position returns countries filtered by A1 (e.g., "FR" → France)
+  - `decode()` now combines A1A2 into `areaOrType1` for country codes
+  - Non-country tables (BUFR, GRID, etc.) continue to use separate A1/A2 values
+
+- **Fixed table mappings per WMO-386 specification**:
+  - Corrected T1 → A1/A2 table mappings for T (Satellite), P (Pictorial), O (Oceanographic), J (BUFR forecast)
+  - Added proper ii table references for J, P, Q data types
+
+### Improvements
+
+- Updated demo to display combined country codes correctly
+- Improved documentation with A1A2 interpretation details
+
 ---
 
 

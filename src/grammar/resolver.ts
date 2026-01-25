@@ -12,27 +12,42 @@ const T1_TO_T2_TABLE: Record<string, string> = {
   'K': 'C7_T2',
 };
 
+// Fixed according to WMO-386 Table A
 const T1_TO_A1_TABLE: Record<string, string> = {
-  'A': 'C1', 'C': 'C1', 'F': 'C1', 'N': 'C1', 'S': 'C1', 'T': 'C1', 'U': 'C1', 'W': 'C1',
-  'P': 'C1', 'E': 'C1', 'L': 'C1',
-  'D': 'C3', 'G': 'C3', 'H': 'C3', 'Y': 'C3', 'O': 'C3', 'Q': 'C3',
+  // C1 (2-char country codes) - for meteorological info
+  'A': 'C1', 'C': 'C1', 'E': 'C1', 'F': 'C1', 'L': 'C1', 'N': 'C1', 'S': 'C1', 'U': 'C1', 'V': 'C1', 'W': 'C1',
+  // C3 (single char geographical areas)
+  'D': 'C3', 'G': 'C3', 'H': 'C3', 'O': 'C3', 'P': 'C3', 'Q': 'C3', 'T': 'C3', 'Y': 'C3',
+  // C6 (BUFR data types) - handled specially
   'I': 'C6', 'J': 'C6',
+  // C7 (CREX) - handled specially
   'K': 'C7',
 };
 
+// Fixed according to WMO-386 Table A
 const T1_TO_A2_TABLE: Record<string, string> = {
-  'A': 'C1', 'C': 'C1', 'F': 'C1', 'N': 'C1', 'S': 'C1', 'T': 'C1', 'U': 'C1', 'W': 'C1',
-  'P': 'C1', 'E': 'C1', 'L': 'C1',
-  'D': 'C4', 'G': 'C4', 'H': 'C4', 'Y': 'C4',
-  'Q': 'C5',
-  'O': 'C3',
-  'I': 'C3', 'J': 'C3', 'K': 'C3',
+  // C1 (2-char country codes) - second char of country
+  'A': 'C1', 'C': 'C1', 'E': 'C1', 'F': 'C1', 'L': 'C1', 'N': 'C1', 'S': 'C1', 'U': 'C1', 'V': 'C1', 'W': 'C1',
+  // C3 (geographical areas) - for BUFR/CREX A2
+  'I': 'C3', 'K': 'C3',
+  // C4 (reference time)
+  'D': 'C4', 'G': 'C4', 'H': 'C4', 'J': 'C4', 'O': 'C4', 'P': 'C4', 'T': 'C4',
+  // C5 (reference time for regional)
+  'Q': 'C5', 'Y': 'C5',
 };
 
 const T1_TO_II_TABLE: Record<string, string> = {
   'O': 'D1',
-  'D': 'D2', 'G': 'D2', 'H': 'D2', 'Y': 'D2',
+  'D': 'D2', 'G': 'D2', 'H': 'D2', 'J': 'D2', 'P': 'D2', 'Q': 'D2', 'Y': 'D2',
 };
+
+/**
+ * Check if T1 uses C1 table (2-char country codes) for A1A2
+ */
+export function usesCountryTable(T1: string | undefined): boolean {
+  if (!T1) return false;
+  return T1_TO_A1_TABLE[T1] === 'C1';
+}
 
 /**
  * Parse a TTAAII string into its context components
@@ -110,6 +125,56 @@ export function getT2Table(tables: TtaaiiTables, context: TtaaiiContext): TableD
 }
 
 /**
+ * Get unique first characters from country codes for A1 completion
+ */
+function getA1EntriesFromCountries(tables: TtaaiiTables): TableEntry[] {
+  const firstChars = new Map<string, string[]>();
+
+  for (const entry of tables.C1.entries) {
+    if (entry.code.length === 2) {
+      const firstChar = entry.code[0];
+      if (!firstChars.has(firstChar)) {
+        firstChars.set(firstChar, []);
+      }
+      firstChars.get(firstChar)!.push(entry.label);
+    }
+  }
+
+  const entries: TableEntry[] = [];
+  for (const [char, countries] of firstChars) {
+    entries.push({
+      code: char,
+      label: `Countries starting with ${char} (${countries.length} entries)`,
+      metadata: { countryCount: countries.length },
+    });
+  }
+
+  return entries.sort((a, b) => a.code.localeCompare(b.code));
+}
+
+/**
+ * Get country entries filtered by first character for A2 completion
+ */
+function getA2EntriesFromCountries(tables: TtaaiiTables, A1: string): TableEntry[] {
+  const entries: TableEntry[] = [];
+
+  for (const entry of tables.C1.entries) {
+    if (entry.code.length === 2 && entry.code[0] === A1) {
+      entries.push({
+        code: entry.code[1], // Only the second character
+        label: entry.label,
+        metadata: {
+          ...entry.metadata,
+          fullCode: entry.code, // Keep full code for reference
+        },
+      });
+    }
+  }
+
+  return entries.sort((a, b) => a.code.localeCompare(b.code));
+}
+
+/**
  * Get the table definition for A1 based on context
  */
 export function getA1Table(tables: TtaaiiTables, context: TtaaiiContext): TableDefinition | null {
@@ -134,7 +199,12 @@ export function getA1Table(tables: TtaaiiTables, context: TtaaiiContext): TableD
 
   switch (tableId) {
     case 'C1':
-      return { id: 'C1', name: tables.C1.name, entries: tables.C1.entries };
+      // Return unique first characters of country codes
+      return {
+        id: 'C1_A1',
+        name: 'Geographical designator A1 (first character of country)',
+        entries: getA1EntriesFromCountries(tables),
+      };
     case 'C3':
       return { id: 'C3', name: tables.C3.name, entries: tables.C3.entries };
     default:
@@ -146,11 +216,11 @@ export function getA1Table(tables: TtaaiiTables, context: TtaaiiContext): TableD
  * Get the table definition for A2 based on context
  */
 export function getA2Table(tables: TtaaiiTables, context: TtaaiiContext): TableDefinition | null {
-  const { T1 } = context;
+  const { T1, A1 } = context;
   if (!T1) return null;
 
-  // Special case: BUFR (T1 = I or J) - A2 uses C3 (geographical area)
-  if (T1 === 'I' || T1 === 'J') {
+  // Special case: BUFR observational (T1 = I) - A2 uses C3 (geographical area)
+  if (T1 === 'I') {
     return { id: 'C3', name: tables.C3.name, entries: tables.C3.entries };
   }
 
@@ -164,7 +234,15 @@ export function getA2Table(tables: TtaaiiTables, context: TtaaiiContext): TableD
 
   switch (tableId) {
     case 'C1':
-      return { id: 'C1', name: tables.C1.name, entries: tables.C1.entries };
+      // Filter countries by A1 (first character)
+      if (!A1) {
+        return { id: 'C1', name: tables.C1.name, entries: tables.C1.entries };
+      }
+      return {
+        id: 'C1_A2',
+        name: `Countries starting with ${A1}`,
+        entries: getA2EntriesFromCountries(tables, A1),
+      };
     case 'C3':
       return { id: 'C3', name: tables.C3.name, entries: tables.C3.entries };
     case 'C4':
@@ -342,4 +420,11 @@ export function validateCharacter(
   }
 
   return { valid: true };
+}
+
+/**
+ * Get full country entry for a combined A1A2 code
+ */
+export function getCountryEntry(tables: TtaaiiTables, A1A2: string): TableEntry | undefined {
+  return tables.C1.entries.find(e => e.code === A1A2);
 }
