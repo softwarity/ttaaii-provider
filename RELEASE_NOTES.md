@@ -2,13 +2,13 @@
 
 ## 1.0.10
 
+### Bug Fixes
+
+- **Fixed demo CDN URL**: Demo now correctly fetches tables from package root instead of `/dist/` path
+
 ---
 
 ## 1.0.9
-
----
-
-## 1.0.8
 
 ### Features
 
@@ -16,6 +16,10 @@
   - `import { VERSION } from '@softwarity/ttaaii-provider'`
   - Version is injected at build time from package.json
   - Demo playground displays current version
+
+---
+
+## 1.0.8
 
 ### Improvements
 
