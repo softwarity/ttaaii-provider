@@ -1,6 +1,6 @@
 {
   "name": "@softwarity/ttaaii-provider",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "WMO TTAAII code completion provider - UI agnostic",
   "type": "module",
   "main": "./dist/ttaaii-provider.cjs.js",
