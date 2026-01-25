@@ -239,4 +239,65 @@ describe('TtaaiiProvider', () => {
       expect(result.groups).toBeDefined();
     });
   });
+
+  describe('Regression tests - Country codes with ambiguous A1 (F, V, W)', () => {
+    it('should complete SAFR as France (country code FR)', () => {
+      // S = Surface data, A = Aviation (METAR), F = first char of country, R = second char
+      const resultSA = provider.complete('SA');
+      expect(resultSA.field).toBe('A1');
+
+      const resultSAF = provider.complete('SAF');
+      expect(resultSAF.field).toBe('A2');
+      // Should include R for France (FR)
+      const a2Codes = resultSAF.items.map(i => i.code);
+      expect(a2Codes).toContain('R'); // France
+
+      const resultSAFR = provider.complete('SAFR');
+      expect(resultSAFR.field).toBe('ii');
+      expect(resultSAFR.position).toBe(4);
+    });
+
+    it('should decode SAFR01 as Surface/Aviation/France', () => {
+      const decoded = provider.decode('SAFR01');
+
+      expect(decoded.dataType?.label).toBe('Surface data');
+      expect(decoded.dataSubtype?.label).toBe('Aviation routine reports');
+      expect(decoded.areaOrType1?.code).toBe('FR');
+      expect(decoded.areaOrType1?.label).toBe('France');
+    });
+
+    it('should include F as country prefix in A1 options for T1=S', () => {
+      const result = provider.complete('SA');
+      const a1Codes = result.items.map(i => i.code);
+
+      // F should be available as a country prefix (France, Finland, etc.)
+      expect(a1Codes).toContain('F');
+    });
+
+    it('should include both country and C2 options in A2 when A1=F for T1=S', () => {
+      const result = provider.complete('SAF');
+      const a2Codes = result.items.map(i => i.code);
+
+      // Should include country second chars (R for France, I for Finland, etc.)
+      expect(a2Codes).toContain('R'); // France (FR)
+      expect(a2Codes).toContain('I'); // Fiji (FI) or Finland (FL has I)
+
+      // Should also include C2 ocean areas (A, B, C, etc.)
+      expect(a2Codes).toContain('A'); // Ocean area A
+    });
+
+    it('should validate SAFR as valid (France)', () => {
+      const validation = provider.validate('SAFR');
+
+      expect(validation.valid).toBe(true);
+      expect(validation.complete).toBe(false); // Missing ii
+    });
+
+    it('should validate SAFR01 as complete and valid', () => {
+      const validation = provider.validate('SAFR01');
+
+      expect(validation.valid).toBe(true);
+      expect(validation.complete).toBe(true);
+    });
+  });
 });

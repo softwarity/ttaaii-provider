@@ -2,6 +2,33 @@
 
 ## 1.0.6
 
+### Bug Fixes
+
+- **Fixed ambiguous A1 codes (F, V, W) handling**:
+  - F, V, W are now available as BOTH country prefixes AND C2 station types
+  - When A1 is F/V/W, A2 options include both country codes and ocean areas
+  - Decoding uses smart detection: checks if A2 is a valid country before assuming C2 interpretation
+  - Example: "SAFR01" now correctly decodes as Surface/Aviation/France (not Floats)
+
+- **Fixed ii validation for second digit**:
+  - `parseContext` now captures partial ii (5 characters) for proper validation
+  - Validation of "SAFR01" now works correctly
+
+### Tests
+
+- **Added regression tests for country codes with ambiguous A1**:
+  - Tests for SAFR completion (France)
+  - Tests for SAFR01 validation and decoding
+  - Tests for F as country prefix in A1 options
+  - Tests for combined C1/C2 options in A2 when A1=F
+
+### Documentation
+
+- **Improved groupBy explanation**:
+  - README now explains that WMO country list has 200+ entries
+  - Demo playground includes explanation for groupBy feature
+  - Better code examples showing flat vs grouped display
+
 ---
 
 ## 1.0.5

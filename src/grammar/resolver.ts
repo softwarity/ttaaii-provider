@@ -4,10 +4,27 @@ import type { TableDefinition, TableEntry, TtaaiiContext, TtaaiiField, TtaaiiTab
 const C2_A1_CODES = ['W', 'V', 'F'];
 
 /**
- * Check if A1 code is from C2 table (ships/oceanographic)
+ * Check if A1 code is a potential C2 station type (W, V, F)
+ * Note: These codes can also be country prefixes, so context matters
  */
 export function isC2StationType(A1: string | undefined): boolean {
   return A1 !== undefined && C2_A1_CODES.includes(A1);
+}
+
+/**
+ * Check if A2 is a valid country second character given A1
+ */
+export function isValidCountryA2(tables: TtaaiiTables, A1: string, A2: string): boolean {
+  return tables.C1.entries.some(
+    entry => entry.code.length === 2 && entry.code[0] === A1 && entry.code[1] === A2
+  );
+}
+
+/**
+ * Check if A2 is a valid C2 ocean area code
+ */
+export function isValidC2A2(tables: TtaaiiTables, A2: string): boolean {
+  return tables.C2.A2.some(entry => entry.code === A2);
 }
 
 // Mappings: which table to use based on T1
@@ -70,7 +87,7 @@ export function parseContext(input: string): TtaaiiContext {
   if (input.length >= 2) context.T2 = input[1];
   if (input.length >= 3) context.A1 = input[2];
   if (input.length >= 4) context.A2 = input[3];
-  if (input.length >= 6) context.ii = input.slice(4, 6);
+  if (input.length >= 5) context.ii = input.slice(4, 6); // captures 1 or 2 digits
 
   return context;
 }
@@ -137,7 +154,7 @@ export function getT2Table(tables: TtaaiiTables, context: TtaaiiContext): TableD
 
 /**
  * Get unique first characters from country codes for A1 completion
- * Excludes characters that are C2 station types (W, V, F)
+ * Includes ALL first characters, even those that overlap with C2 station types (W, V, F)
  */
 function getA1EntriesFromCountries(tables: TtaaiiTables): TableEntry[] {
   const firstChars = new Map<string, string[]>();
@@ -145,8 +162,6 @@ function getA1EntriesFromCountries(tables: TtaaiiTables): TableEntry[] {
   for (const entry of tables.C1.entries) {
     if (entry.code.length === 2) {
       const firstChar = entry.code[0];
-      // Skip if this char is a C2 station type
-      if (C2_A1_CODES.includes(firstChar)) continue;
       if (!firstChars.has(firstChar)) {
         firstChars.set(firstChar, []);
       }
@@ -286,13 +301,15 @@ export function getA2Table(tables: TtaaiiTables, context: TtaaiiContext): TableD
 
   switch (tableId) {
     case 'C1':
-      // For T1=S or T1=U, check if A1 is a C2 station type
-      if ((T1 === 'S' || T1 === 'U') && isC2StationType(A1)) {
-        // A1 is W, V, or F -> use C2 ocean areas
+      // For T1=S or T1=U with ambiguous A1 (F, V, W), return BOTH country and C2 options
+      if ((T1 === 'S' || T1 === 'U') && A1 && isC2StationType(A1)) {
+        const countryEntries = getA2EntriesFromCountries(tables, A1);
+        const c2Entries = getC2A2Entries(tables);
+        // Combine both sets of entries
         return {
-          id: 'C2',
-          name: tables.C2.name,
-          entries: getC2A2Entries(tables),
+          id: 'C1/C2',
+          name: `Countries starting with ${A1} or ocean areas`,
+          entries: [...countryEntries, ...c2Entries],
         };
       }
       // Otherwise, filter countries by A1 (first character)

@@ -135,27 +135,43 @@ function selectItem(code: string) {
 </template>
 ```
 
-## Grouped Completions
+## Grouped Completions (Countries by Continent)
 
-Group countries by continent for better UX (at A2 position where country names appear):
+The WMO country list contains **200+ entries**, making it difficult to navigate in a flat autocomplete. The `groupBy: 'continent'` option organizes countries into geographical sections for better UX:
 
 ```typescript
-// At A1 position: first characters of country codes
-const a1Result = provider.complete('SA');
-// a1Result.items = [{ code: 'A', label: 'Countries starting with A' }, ...]
+// Without grouping: flat list of all countries starting with 'F'
+const flat = provider.complete('SAF');
+// flat.items = [
+//   { code: 'A', label: 'South Africa' },
+//   { code: 'G', label: 'French Guiana' },
+//   { code: 'I', label: 'Fiji' },
+//   { code: 'R', label: 'France' },
+//   ... (many more)
+// ]
 
-// At A2 position: full country names (filtered by A1)
-const a2Result = provider.complete('SAF');
-// a2Result.items = [{ code: 'A', label: 'Faroe Islands' }, { code: 'R', label: 'France' }, ...]
-
-// Grouped by continent (useful at A2 position)
+// With grouping: countries organized by continent
 const grouped = provider.complete('SAF', { groupBy: 'continent' });
 // grouped.groups = [
-//   { key: 'EU', label: 'Europe', items: [{ code: 'R', label: 'France' }, ...] },
-//   { key: 'OC', label: 'Oceania', items: [{ code: 'J', label: 'Fiji' }, ...] },
-//   ...
+//   { key: 'EU', label: 'Europe', items: [
+//     { code: 'L', label: 'Finland' },
+//     { code: 'N', label: 'Faroe Islands' },
+//     { code: 'R', label: 'France' },
+//   ]},
+//   { key: 'AF', label: 'Africa', items: [
+//     { code: 'A', label: 'South Africa' },
+//   ]},
+//   { key: 'OC', label: 'Oceania', items: [
+//     { code: 'I', label: 'Fiji' },
+//   ]},
+//   { key: 'SA', label: 'South America', items: [
+//     { code: 'G', label: 'French Guiana' },
+//     { code: 'K', label: 'Falkland Islands' },
+//   ]},
 // ]
 ```
+
+Use `result.groups` for grouped display (e.g., `<mat-optgroup>` in Angular Material) or `result.items` for flat list.
 
 ## Internationalization (i18n)
 

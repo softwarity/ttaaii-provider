@@ -22,6 +22,9 @@ const provider = new TtaaiiProvider(tables);</textarea>
   </interactive-code>
 
   <!-- Interactive Code with groupBy selector -->
+  <p class="section-intro">
+    The WMO country list contains <strong>200+ entries</strong>. Use <code>groupBy: 'continent'</code> to organize countries into geographical sections for easier navigation.
+  </p>
   <interactive-code language="typescript">
     <textarea>const result = provider.complete(input, { groupBy: ${groupBy} });
 

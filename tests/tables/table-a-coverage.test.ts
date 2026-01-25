@@ -491,22 +491,22 @@ describe('WMO-386 Table A - Complete Coverage', () => {
       expect(codes).toContain('U'); // C1: Countries starting with U
     });
 
-    it('A2 should use C2 when A1 is W (ocean weather stations)', () => {
+    it('A2 should use C1/C2 combined when A1 is W (ambiguous)', () => {
       const table = getA2Table(tables, { T1: 'S', T2: 'A', A1: 'W' });
       expect(table).not.toBeNull();
-      expect(table!.id).toBe('C2');
+      expect(table!.id).toBe('C1/C2');
     });
 
-    it('A2 should use C2 when A1 is V (mobile ships)', () => {
+    it('A2 should use C1/C2 combined when A1 is V (ambiguous)', () => {
       const table = getA2Table(tables, { T1: 'S', T2: 'A', A1: 'V' });
       expect(table).not.toBeNull();
-      expect(table!.id).toBe('C2');
+      expect(table!.id).toBe('C1/C2');
     });
 
-    it('A2 should use C2 when A1 is F (floats)', () => {
+    it('A2 should use C1/C2 combined when A1 is F (ambiguous)', () => {
       const table = getA2Table(tables, { T1: 'S', T2: 'O', A1: 'F' });
       expect(table).not.toBeNull();
-      expect(table!.id).toBe('C2');
+      expect(table!.id).toBe('C1/C2');
     });
 
     it('A2 should use C1 when A1 is a country char', () => {
@@ -561,10 +561,10 @@ describe('WMO-386 Table A - Complete Coverage', () => {
       expect(table!.id).toBe('C1/C2');
     });
 
-    it('A2 should use C2 when A1 is W', () => {
+    it('A2 should use C1/C2 combined when A1 is W (ambiguous)', () => {
       const table = getA2Table(tables, { T1: 'U', T2: 'A', A1: 'W' });
       expect(table).not.toBeNull();
-      expect(table!.id).toBe('C2');
+      expect(table!.id).toBe('C1/C2');
     });
 
     it('A2 should use C1 when A1 is a country char (not W/V/F)', () => {

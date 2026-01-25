@@ -23,6 +23,7 @@ import {
   usesCountryTable,
   getCountryEntry,
   isC2StationType,
+  isValidCountryA2,
 } from './grammar/resolver';
 
 // Default tables (English)
@@ -172,7 +173,7 @@ export class TtaaiiProvider {
     if (context.T1 && context.T2 && context.A1) {
       if (usesCountryTable(context.T1)) {
         // Check if A1 is a C2 station type (W, V, F) for ships/oceanographic
-        if (isC2StationType(context.A1)) {
+        if (isC2StationType(context.A1) && context.A2 && !isValidCountryA2(this.tables, context.A1, context.A2)) {
           // A1 is from C2 (station type)
           const c2A1Entry = this.tables.C2.A1.find(e => e.code === context.A1);
           if (c2A1Entry) {
