@@ -24,8 +24,8 @@ import {
   getCountryEntry,
 } from './grammar/resolver';
 
-// Default tables
-import defaultTables from './grammar/data/tables.json';
+// Default tables (English)
+import defaultTables from './grammar/data/tables.en.json';
 
 // Continent labels for grouping
 const CONTINENT_LABELS: Record<string, string> = {

@@ -4,8 +4,22 @@
   <p class="section-intro">
     This library is <strong>UI-agnostic</strong> and works with any framework (Angular, React, Vue.js, etc.).
     Below is an interactive example using Angular Material's autocomplete component.
-    Click on the <code>groupBy</code> value to change it and see the result.
+    Click on values to change them and see the result.
   </p>
+
+  <!-- Interactive Code with language selector -->
+  <interactive-code language="typescript">
+    <textarea>import { TtaaiiProvider } from '@softwarity/ttaaii-provider';
+import tables from '@softwarity/ttaaii-provider/${tablesFile}';
+
+const provider = new TtaaiiProvider(tables);</textarea>
+    <code-binding
+      key="tablesFile"
+      type="select"
+      options="tables.en.json,tables.fr.json"
+      value="tables.en.json">
+    </code-binding>
+  </interactive-code>
 
   <!-- Interactive Code with groupBy selector -->
   <interactive-code language="typescript">

@@ -31,6 +31,6 @@ export {
   getFieldAtPosition,
 } from './grammar';
 
-// Default tables (for customization)
-import defaultTables from './grammar/data/tables.json';
+// Default tables (English, for customization)
+import defaultTables from './grammar/data/tables.en.json';
 export { defaultTables };

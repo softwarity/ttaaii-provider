@@ -11,7 +11,9 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/ttaaii-provider.es.js",
       "require": "./dist/ttaaii-provider.cjs.js"
-    }
+    },
+    "./tables.en.json": "./dist/tables.en.json",
+    "./tables.fr.json": "./dist/tables.fr.json"
   },
   "files": [
     "dist"

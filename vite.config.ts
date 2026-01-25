@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
+import { copyFileSync, mkdirSync } from 'fs';
 
 export default defineConfig({
   build: {
@@ -16,5 +17,23 @@ export default defineConfig({
       }
     },
     sourcemap: true
-  }
+  },
+  plugins: [
+    {
+      name: 'copy-tables',
+      closeBundle() {
+        // Copy i18n table files to dist for CDN access
+        const distDir = resolve(__dirname, 'dist');
+        mkdirSync(distDir, { recursive: true });
+        copyFileSync(
+          resolve(__dirname, 'src/grammar/data/tables.en.json'),
+          resolve(distDir, 'tables.en.json')
+        );
+        copyFileSync(
+          resolve(__dirname, 'src/grammar/data/tables.fr.json'),
+          resolve(distDir, 'tables.fr.json')
+        );
+      }
+    }
+  ]
 });

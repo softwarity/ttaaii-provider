@@ -26,7 +26,12 @@ import {
   CompletionItem,
   CompletionGroup,
   DecodedTtaaii,
+  TtaaiiTables,
 } from '../../../../src';
+
+// i18n tables
+import tablesEn from '../../../../src/grammar/data/tables.en.json';
+import tablesFr from '../../../../src/grammar/data/tables.fr.json';
 
 // PrismJS for syntax highlighting
 import Prism from 'prismjs';
@@ -56,14 +61,25 @@ registerInteractiveCode();
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PlaygroundComponent implements AfterViewInit, OnDestroy {
-  private provider = new TtaaiiProvider();
   private autoTrigger = viewChild<MatAutocompleteTrigger>(MatAutocompleteTrigger);
   private codeBindingListener?: () => void;
+
+  // Available tables for i18n
+  private readonly tablesMap: Record<string, TtaaiiTables> = {
+    en: tablesEn as TtaaiiTables,
+    fr: tablesFr as TtaaiiTables,
+  };
 
   constructor(
     private elementRef: ElementRef,
     private ngZone: NgZone
   ) {}
+
+  // Language selection (en or fr)
+  protected language = signal<'en' | 'fr'>('en');
+
+  // Provider based on selected language
+  private provider = computed(() => new TtaaiiProvider(this.tablesMap[this.language()]));
 
   // Input state - raw input value (may include filter characters)
   protected inputValue = signal('');
@@ -92,12 +108,12 @@ export class PlaygroundComponent implements AfterViewInit, OnDestroy {
     const input = this.committedInput();
     const groupBy = this.groupByValue();
     const options = groupBy ? { groupBy } : {};
-    return this.provider.complete(input, options);
+    return this.provider().complete(input, options);
   });
 
   // Decoded TTAAII (based on committed input for accurate meanings)
   protected decoded = computed<DecodedTtaaii>(() => {
-    return this.provider.decode(this.committedInput());
+    return this.provider().decode(this.committedInput());
   });
 
   // JSON string for display (plain)
@@ -193,9 +209,10 @@ export class PlaygroundComponent implements AfterViewInit, OnDestroy {
     this.inputValue.set(upper);
 
     // Try to commit as many valid characters as possible
+    const provider = this.provider();
     while (currentCommitted < upper.length && currentCommitted < 6) {
       const partialInput = upper.slice(0, currentCommitted);
-      const result = this.provider.complete(partialInput);
+      const result = provider.complete(partialInput);
       const field = result.field;
 
       if (field === 'ii') {
@@ -290,6 +307,14 @@ export class PlaygroundComponent implements AfterViewInit, OnDestroy {
 
       this.ngZone.run(() => {
         switch (key) {
+          case 'tablesFile':
+            // Extract language from tables.xx.json
+            if (value === 'tables.fr.json') {
+              this.language.set('fr');
+            } else {
+              this.language.set('en');
+            }
+            break;
           case 'groupBy':
             this.groupByValue.set(finalValue);
             break;

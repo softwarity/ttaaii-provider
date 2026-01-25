@@ -10,7 +10,7 @@ import {
   getIiTable,
 } from '../../src/grammar/resolver';
 import type { TtaaiiTables } from '../../src/types';
-import defaultTables from '../../src/grammar/data/tables.json';
+import defaultTables from '../../src/grammar/data/tables.en.json';
 
 const tables = defaultTables as TtaaiiTables;
 
