@@ -157,27 +157,50 @@ const grouped = provider.complete('SAF', { groupBy: 'continent' });
 // ]
 ```
 
-## Custom Tables (i18n/Localization)
+## Internationalization (i18n)
 
-The provider accepts custom tables for localization or customization:
+### Pre-built Localized Tables
+
+The library provides pre-built tables in English and French, available via CDN:
 
 ```typescript
-import { TtaaiiProvider, defaultTables, TtaaiiTables } from '@softwarity/ttaaii-provider';
+// Using dynamic import (recommended for lazy loading)
+const tables = await fetch('https://cdn.jsdelivr.net/npm/@softwarity/ttaaii-provider/dist/tables.fr.json')
+  .then(r => r.json());
 
-// Create localized tables
-const frenchTables: TtaaiiTables = {
-  ...defaultTables,
-  A: {
-    ...defaultTables.A,
-    entries: defaultTables.A.entries.map(entry => ({
-      ...entry,
-      label: translateToFrench(entry.label)
-    }))
-  },
-  // ... localize other tables as needed
-};
+const provider = new TtaaiiProvider(tables);
+```
 
-const provider = new TtaaiiProvider(frenchTables);
+Available table files:
+- `tables.en.json` - English labels
+- `tables.fr.json` - French labels
+
+CDN URLs:
+- jsDelivr: `https://cdn.jsdelivr.net/npm/@softwarity/ttaaii-provider/dist/tables.{lang}.json`
+- unpkg: `https://unpkg.com/@softwarity/ttaaii-provider/dist/tables.{lang}.json`
+
+### Bundled Import (static)
+
+For bundlers that support JSON imports:
+
+```typescript
+import tables from '@softwarity/ttaaii-provider/tables.fr.json';
+import { TtaaiiProvider } from '@softwarity/ttaaii-provider';
+
+const provider = new TtaaiiProvider(tables);
+```
+
+### Custom Tables
+
+To create a custom translation or modify labels:
+
+1. Download a table file (e.g., `tables.en.json`) from CDN
+2. Edit the `label` fields as needed
+3. Use it in your application
+
+```typescript
+import customTables from './my-tables.json';
+const provider = new TtaaiiProvider(customTables);
 ```
 
 ## API

@@ -2,6 +2,27 @@
 
 ## 1.0.5
 
+### Features
+
+- **CDN-based table loading**:
+  - Tables (`tables.en.json`, `tables.fr.json`) are now loaded dynamically via CDN in production
+  - Development mode uses local assets, production mode uses jsDelivr CDN
+  - Enables lazy loading of localization resources
+  - CDN URLs: `https://cdn.jsdelivr.net/npm/@softwarity/ttaaii-provider/dist/tables.{lang}.json`
+
+### Documentation
+
+- **Updated README with i18n section**:
+  - Pre-built localized tables (EN, FR) available via CDN
+  - CDN URLs (jsDelivr, unpkg)
+  - Simple custom tables workflow: download, edit labels, host
+
+### Improvements
+
+- **Demo playground**:
+  - Dynamic table loading with environment-based URLs
+  - Loading state handling during table fetch
+
 ---
 
 ## 1.0.4

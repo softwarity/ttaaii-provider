@@ -18,7 +18,13 @@
             "polyfills": [],
             "tsConfig": "demo/tsconfig.app.json",
             "inlineStyleLanguage": "scss",
-            "assets": [],
+            "assets": [
+              {
+                "glob": "tables.*.json",
+                "input": "src/grammar/data",
+                "output": "/assets"
+              }
+            ],
             "styles": ["demo/src/styles.scss"],
             "scripts": []
           },
@@ -31,7 +37,13 @@
                   "maximumError": "1mb"
                 }
               ],
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "fileReplacements": [
+                {
+                  "replace": "demo/src/environments/environment.ts",
+                  "with": "demo/src/environments/environment.prod.ts"
+                }
+              ]
             },
             "development": {
               "optimization": false,

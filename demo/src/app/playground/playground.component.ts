@@ -6,6 +6,7 @@ import {
   CUSTOM_ELEMENTS_SCHEMA,
   AfterViewInit,
   OnDestroy,
+  OnInit,
   ElementRef,
   NgZone,
   viewChild,
@@ -28,10 +29,7 @@ import {
   DecodedTtaaii,
   TtaaiiTables,
 } from '../../../../src';
-
-// i18n tables
-import tablesEn from '../../../../src/grammar/data/tables.en.json';
-import tablesFr from '../../../../src/grammar/data/tables.fr.json';
+import { environment } from '../../environments/environment';
 
 // PrismJS for syntax highlighting
 import Prism from 'prismjs';
@@ -60,15 +58,15 @@ registerInteractiveCode();
   styleUrl: './playground.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PlaygroundComponent implements AfterViewInit, OnDestroy {
+export class PlaygroundComponent implements OnInit, AfterViewInit, OnDestroy {
   private autoTrigger = viewChild<MatAutocompleteTrigger>(MatAutocompleteTrigger);
   private codeBindingListener?: () => void;
 
-  // Available tables for i18n
-  private readonly tablesMap: Record<string, TtaaiiTables> = {
-    en: tablesEn as TtaaiiTables,
-    fr: tablesFr as TtaaiiTables,
-  };
+  // Available tables for i18n (loaded dynamically)
+  private tablesMap = signal<Record<string, TtaaiiTables>>({});
+
+  // Loading state
+  protected isLoading = signal(true);
 
   constructor(
     private elementRef: ElementRef,
@@ -79,7 +77,27 @@ export class PlaygroundComponent implements AfterViewInit, OnDestroy {
   protected language = signal<'en' | 'fr'>('en');
 
   // Provider based on selected language
-  private provider = computed(() => new TtaaiiProvider(this.tablesMap[this.language()]));
+  private provider = computed(() => {
+    const tables = this.tablesMap()[this.language()];
+    return tables ? new TtaaiiProvider(tables) : null;
+  });
+
+  async ngOnInit(): Promise<void> {
+    // Load tables dynamically to demonstrate i18n resource loading
+    // In development: loads from /assets (local)
+    // In production: loads from CDN (jsdelivr)
+    const baseUrl = environment.tablesBaseUrl;
+    const [tablesEn, tablesFr] = await Promise.all([
+      fetch(`${baseUrl}/tables.en.json`).then(r => r.json()),
+      fetch(`${baseUrl}/tables.fr.json`).then(r => r.json()),
+    ]);
+
+    this.tablesMap.set({
+      en: tablesEn as TtaaiiTables,
+      fr: tablesFr as TtaaiiTables,
+    });
+    this.isLoading.set(false);
+  }
 
   // Input state - raw input value (may include filter characters)
   protected inputValue = signal('');
@@ -104,21 +122,26 @@ export class PlaygroundComponent implements AfterViewInit, OnDestroy {
   );
 
   // Completion result based on committed input
-  protected completionResult = computed<CompletionResult>(() => {
+  protected completionResult = computed<CompletionResult | null>(() => {
+    const provider = this.provider();
+    if (!provider) return null;
     const input = this.committedInput();
     const groupBy = this.groupByValue();
     const options = groupBy ? { groupBy } : {};
-    return this.provider().complete(input, options);
+    return provider.complete(input, options);
   });
 
   // Decoded TTAAII (based on committed input for accurate meanings)
-  protected decoded = computed<DecodedTtaaii>(() => {
-    return this.provider().decode(this.committedInput());
+  protected decoded = computed<DecodedTtaaii | null>(() => {
+    const provider = this.provider();
+    if (!provider) return null;
+    return provider.decode(this.committedInput());
   });
 
   // JSON string for display (plain)
   protected decodedJson = computed(() => {
     const d = this.decoded();
+    if (!d) return '{}';
     // Only include non-empty fields
     const clean: Record<string, unknown> = { input: this.committedInput() };
     if (d.dataType) clean['dataType'] = d.dataType;
@@ -137,7 +160,9 @@ export class PlaygroundComponent implements AfterViewInit, OnDestroy {
 
   // Filtered items for autocomplete (filtered by filterText)
   protected filteredItems = computed<CompletionItem[]>(() => {
-    const items = this.completionResult().items;
+    const result = this.completionResult();
+    if (!result) return [];
+    const items = result.items;
     const filter = this.filterText().toUpperCase();
     if (!filter) return items;
 
@@ -147,7 +172,9 @@ export class PlaygroundComponent implements AfterViewInit, OnDestroy {
 
   // Groups for grouped display (filtered by filterText)
   protected groups = computed<CompletionGroup[] | undefined>(() => {
-    const groups = this.completionResult().groups;
+    const result = this.completionResult();
+    if (!result) return undefined;
+    const groups = result.groups;
     if (!groups) return undefined;
 
     const filter = this.filterText().toUpperCase();
@@ -167,13 +194,13 @@ export class PlaygroundComponent implements AfterViewInit, OnDestroy {
   });
 
   // Current field being edited (based on committed input)
-  protected currentField = computed(() => this.completionResult().field);
+  protected currentField = computed(() => this.completionResult()?.field ?? 'T1');
 
   // Is complete (based on committed input)
-  protected isComplete = computed(() => this.completionResult().isComplete);
+  protected isComplete = computed(() => this.completionResult()?.isComplete ?? false);
 
   // Position info (based on committed input)
-  protected position = computed(() => this.completionResult().position);
+  protected position = computed(() => this.completionResult()?.position ?? 0);
 
   // Field labels for display
   protected readonly fieldLabels: Record<string, string> = {
@@ -210,6 +237,8 @@ export class PlaygroundComponent implements AfterViewInit, OnDestroy {
 
     // Try to commit as many valid characters as possible
     const provider = this.provider();
+    if (!provider) return;
+
     while (currentCommitted < upper.length && currentCommitted < 6) {
       const partialInput = upper.slice(0, currentCommitted);
       const result = provider.complete(partialInput);
