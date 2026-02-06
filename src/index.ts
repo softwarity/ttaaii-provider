@@ -1,11 +1,3 @@
-// Version injected by Vite at build time
-declare const __VERSION__: string;
-
-/**
- * Library version (from package.json)
- */
-export const VERSION: string = typeof __VERSION__ !== 'undefined' ? __VERSION__ : 'dev';
-
 // Main exports
 export { TtaaiiProvider } from './provider';
 

@@ -29,6 +29,9 @@ import {
 // Default tables (English)
 import defaultTables from './grammar/data/tables.en.json';
 
+// Version injected by Vite at build time
+declare const __VERSION__: string;
+
 // Default continent labels (English fallback)
 const DEFAULT_CONTINENT_LABELS: Record<string, string> = {
   EU: 'Europe',
@@ -50,6 +53,8 @@ const DEFAULT_CONTINENT_LABELS: Record<string, string> = {
  * UI-agnostic - can be used with any autocomplete implementation.
  */
 export class TtaaiiProvider {
+  static readonly version: string = typeof __VERSION__ !== 'undefined' ? __VERSION__ : 'dev';
+
   private tables: TtaaiiTables;
 
   constructor(tables?: TtaaiiTables) {

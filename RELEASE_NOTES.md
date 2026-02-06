@@ -2,6 +2,11 @@
 
 ## 1.0.12
 
+### Improvements
+
+- **Static version on TtaaiiProvider**: `TtaaiiProvider.version` replaces the separate `VERSION` export, injected by Vite at build time from `package.json`
+- **Pinned CDN tables version in demo**: CDN URL now uses the library version (`@softwarity/ttaaii-provider@{version}/tables.{lang}.json`) to ensure consistency between the lib and loaded tables, avoiding jsDelivr cache issues
+
 ---
 
 ## 1.0.11

@@ -28,7 +28,6 @@ import {
   CompletionGroup,
   DecodedTtaaii,
   TtaaiiTables,
-  VERSION,
 } from '@softwarity/ttaaii-provider';
 import { environment } from '../../environments/environment';
 
@@ -64,7 +63,7 @@ export class PlaygroundComponent implements OnInit, AfterViewInit, OnDestroy {
   private codeBindingListener?: () => void;
 
   // Library version (from built library)
-  protected readonly version = VERSION;
+  protected readonly version = TtaaiiProvider.version;
 
   // Available tables for i18n (loaded dynamically)
   private tablesMap = signal<Record<string, TtaaiiTables>>({});
@@ -89,8 +88,8 @@ export class PlaygroundComponent implements OnInit, AfterViewInit, OnDestroy {
   async ngOnInit(): Promise<void> {
     // Load tables dynamically to demonstrate i18n resource loading
     // In development: loads from /assets (local)
-    // In production: loads from CDN (jsdelivr)
-    const baseUrl = environment.tablesBaseUrl;
+    // In production: loads from CDN (jsdelivr) with pinned version
+    const baseUrl = environment.tablesBaseUrl.replace('${version}', TtaaiiProvider.version);
     const [tablesEn, tablesFr] = await Promise.all([
       fetch(`${baseUrl}/tables.en.json`).then(r => r.json()),
       fetch(`${baseUrl}/tables.fr.json`).then(r => r.json()),

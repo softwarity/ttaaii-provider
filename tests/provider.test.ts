@@ -1,13 +1,12 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { TtaaiiProvider } from '../src/provider';
-import { VERSION } from '../src/index';
 
-describe('VERSION', () => {
+describe('TtaaiiProvider.version', () => {
   it('should be a valid semver string or "dev"', () => {
-    // In test environment without Vite define, VERSION falls back to 'dev'
+    // In test environment without Vite define, version falls back to 'dev'
     // In production build, it's the package.json version
-    expect(typeof VERSION).toBe('string');
-    expect(VERSION.length).toBeGreaterThan(0);
+    expect(typeof TtaaiiProvider.version).toBe('string');
+    expect(TtaaiiProvider.version.length).toBeGreaterThan(0);
   });
 });
 
