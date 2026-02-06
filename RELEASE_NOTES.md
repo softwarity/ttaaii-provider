@@ -2,6 +2,16 @@
 
 ## 1.0.11
 
+### Bug Fixes
+
+- **Fixed WMO 386 Table C1 country mapping (A1A2 geographical designators)**:
+  - The C1 mapping was incorrectly using ISO 2-letter country codes instead of WMO 386 designators
+  - ~150+ country codes corrected in both `tables.en.json` and `tables.fr.json`
+  - Key corrections: RM → Republic of Moldova (was Armenia), AY → Armenia (was Ascension Island), BA → Bahamas (was Bahrain), UK → United Kingdom (was Ukraine), CN → Canada (was Comoros), FA → Faroe Islands (was South Africa), RH → Croatia (was Zimbabwe), etc.
+  - Added missing countries: Afghanistan (AH), Azerbaijan (AJ), Alaska (AK), Belgium/Luxembourg (BX), Djibouti (DJ), Georgia (GG), Burkina Faso (HV), etc.
+  - Added missing Part II area designators (AX, BQ, EC, EE, EM, EN, EW, FE, GA, GX, IO, ME, MM, MP, MQ, OH, PE, PN, PQ, PS, PW, PZ, SE, SJ, SS, ST)
+  - Removed incorrect codes not present in WMO 386
+
 ---
 
 ## 1.0.10
